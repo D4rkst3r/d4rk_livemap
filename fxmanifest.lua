@@ -1,10 +1,10 @@
 fx_version 'cerulean'
 game 'gta5'
 
-name        'd4rk_livemap'
+name 'd4rk_livemap'
 description 'D4rk Live-Karte – Spielerpositionen + Marker-API für alle Ressourcen'
-version     '1.0.0'
-author      'D4rkst3r'
+version '1.0.0'
+author 'D4rkst3r'
 
 shared_scripts {
     'config.lua',
@@ -21,6 +21,7 @@ server_scripts {
 files {
     'web/index.html',
     'web/tiles/**',
+    'web/images/*.png',
 }
 
 --[[
