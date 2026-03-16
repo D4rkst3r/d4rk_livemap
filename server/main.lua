@@ -5,8 +5,33 @@
     ╚══════════════════════════════════════════════════════╝
 ]]
 
-local players = {} -- [serverId] = { id, name, x, y, z, heading, inVeh, veh, updatedAt }
-local markers = {} -- [id]       = { id, x, y, z, label, color, icon, group, source }
+local players     = {}
+local markers     = {}
+local playerCache = {} -- gecachte JSON-fertige Liste
+local cacheTime   = 0  -- Timestamp des letzten Cache-Builds
+
+-- ─────────────────────────────────────────────────────────
+-- Hintergrund-Thread: AFK-Spieler alle 30s aufräumen
+-- (statt bei jedem HTTP-Request)
+-- ─────────────────────────────────────────────────────────
+
+CreateThread(function()
+    while true do
+        Wait(30000)
+        local now     = os.time()
+        local removed = 0
+        for id, p in pairs(players) do
+            if (now - (p.updatedAt or 0)) >= 30 then
+                players[id] = nil
+                playerCache = {} -- Cache invalidieren
+                removed = removed + 1
+            end
+        end
+        if removed > 0 then
+            DebugLog(('%d inaktive Spieler entfernt.'):format(removed))
+        end
+    end
+end)
 
 -- ─────────────────────────────────────────────────────────
 -- Hilfsfunktionen
@@ -39,16 +64,18 @@ local function JsonResponse(res, status, data)
 end
 
 local function GetPlayerList()
-    local list = {}
-    local now  = os.time()
-    for id, p in pairs(players) do
-        -- Spieler die seit 30s kein Update geschickt haben entfernen
-        if (now - (p.updatedAt or 0)) < 30 then
-            table.insert(list, p)
-        else
-            players[id] = nil
-        end
+    -- Cache für 1 Sekunde halten – mehrere gleichzeitige Requests
+    -- bauen die Liste nicht mehrfach neu
+    local now = os.time()
+    if #playerCache > 0 and (now - cacheTime) < 1 then
+        return playerCache
     end
+    local list = {}
+    for _, p in pairs(players) do
+        table.insert(list, p)
+    end
+    playerCache = list
+    cacheTime   = now
     return list
 end
 
@@ -77,18 +104,21 @@ RegisterNetEvent('d4rk_livemap:updatePosition', function(data)
         veh       = data.veh,
         updatedAt = os.time(),
     }
+    playerCache  = {} -- Cache invalidieren
     DebugLog(('Position: %s → %.1f / %.1f'):format(name, data.x, data.y))
 end)
 
 RegisterNetEvent('d4rk_livemap:playerLeft', function()
-    local src = source
+    local src    = source
     players[src] = nil
+    playerCache  = {}
     DebugLog(('Spieler %d disconnected'):format(src))
 end)
 
 AddEventHandler('playerDropped', function()
-    local src = source
+    local src    = source
     players[src] = nil
+    playerCache  = {}
 end)
 
 -- ─────────────────────────────────────────────────────────

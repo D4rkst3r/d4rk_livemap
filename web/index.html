@@ -1232,7 +1232,18 @@
     }
 
     poll();
-    setInterval(poll, POLL_INTERVAL);
+    // Poll nur wenn Browser-Tab sichtbar – spart Server-Load bei mehreren
+    // offenen Tabs oder wenn das Dashboard im Hintergrund läuft
+    let pollInterval = setInterval(poll, POLL_INTERVAL);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearInterval(pollInterval);
+      } else {
+        poll();  // Sofort aktualisieren wenn Tab wieder aktiv
+        pollInterval = setInterval(poll, POLL_INTERVAL);
+      }
+    });
   </script>
 </body>
 
