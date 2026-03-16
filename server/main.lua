@@ -152,6 +152,39 @@ SetHttpHandler(function(req, res)
     local path, query = ParseRequest(req.path or '/')
     DebugLog(('HTTP: %s'):format(path))
 
+    -- ── Tiles ausliefern ──────────────────────────────────
+    -- Pfad-Format: /d4rk_livemap/tiles/{z}/{x}/{y}.jpg
+    --              oder FiveM-kurz: /tiles/{z}/{x}/{y}.jpg
+    local tileZ, tileX, tileY = path:match('/tiles/(%d+)/(%d+)/(%d+)%.jpg$')
+    if tileZ then
+        -- Negative oder zu große Tile-Indizes ablehnen
+        local z = tonumber(tileZ)
+        local x = tonumber(tileX)
+        local y = tonumber(tileY)
+        local maxTile = math.pow(2, z) - 1
+
+        if x < 0 or y < 0 or x > maxTile or y > maxTile then
+            res.writeHead(204, { ['Content-Type'] = 'image/jpeg' })
+            res.send(''); return
+        end
+
+        local filePath = ('web/tiles/%s/%s/%s.jpg'):format(tileZ, tileX, tileY)
+        local data     = LoadResourceFile(GetCurrentResourceName(), filePath)
+
+        if data then
+            res.writeHead(200, {
+                ['Content-Type']  = 'image/jpeg',
+                ['Cache-Control'] = 'public, max-age=86400',
+            })
+            res.send(data)
+        else
+            -- Leere 204-Antwort statt 404 damit der Browser nicht warnt
+            res.writeHead(204, { ['Content-Type'] = 'image/jpeg' })
+            res.send('')
+        end
+        return
+    end
+
     -- ── Web-Interface ─────────────────────────────────────
     if path == '/' or path == '/d4rk_livemap/' or path == '/d4rk_livemap'
         or path == '/index.html' or path == '/d4rk_livemap/index.html' then

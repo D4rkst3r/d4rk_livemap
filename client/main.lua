@@ -3,8 +3,8 @@
     Sendet Spielerposition regelmäßig an den Server
 ]]
 
-local lastPos    = vector3(0, 0, 0)
-local isRunning  = false
+local lastPos   = vector3(0, 0, 0)
+local isRunning = false
 
 local function GetPlayerData()
     local ped     = PlayerPedId()
