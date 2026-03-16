@@ -30,21 +30,25 @@ local function GetPlayerData()
 end
 
 CreateThread(function()
-    -- Warten bis Spieler vollständig gespawnt ist
     while not NetworkIsPlayerActive(PlayerId()) do
         Wait(500)
     end
 
     isRunning = true
+    local lastSentTime = 0
 
     while isRunning do
-        local data = GetPlayerData()
+        local data    = GetPlayerData()
+        local pos     = vector3(data.x, data.y, data.z)
+        local now     = GetGameTimer()
+        local moved   = #(pos - lastPos) > 0.5
+        -- Heartbeat alle 25s damit Server-Timeout (30s) nicht greift
+        local timeout = (now - lastSentTime) >= 25000
 
-        -- Nur senden wenn sich Position geändert hat (spart Netzwerk)
-        local pos = vector3(data.x, data.y, data.z)
-        if #(pos - lastPos) > 0.5 or Config.Debug then
+        if moved or timeout or Config.Debug then
             TriggerServerEvent('d4rk_livemap:updatePosition', data)
-            lastPos = pos
+            lastPos      = pos
+            lastSentTime = now
         end
 
         Wait(Config.UpdateInterval)

@@ -751,8 +751,16 @@
     const WORLD = { x0: -4096, x1: 4096, y0: -4096, y1: 4096 };
 
     // Hilfsfunktion: GTA5-Koordinaten → Leaflet LatLng
-    // Leaflet erwartet [lat, lng] = [GTA-Y, GTA-X]
     function gta(x, y) { return [y, x]; }
+
+    // URL-Parameter auslesen
+    // ?mode=markers  → nur Marker, keine Spieler (für Dashboard-Iframe)
+    // ?group=Props   → bestimmte Gruppe vorfiltern
+    // ?sidebar=0     → Sidebar verstecken
+    const URL_PARAMS = new URLSearchParams(window.location.search);
+    const MODE_MARKERS = URL_PARAMS.get('mode') === 'markers';  // nur Marker
+    const PRESET_GROUP = URL_PARAMS.get('group') || null;        // Gruppe vorfiltern
+    const HIDE_SIDEBAR = URL_PARAMS.get('sidebar') === '0';      // Sidebar aus
 
     // Update-Intervall für die Karte (ms)
     const POLL_INTERVAL = 2000;
@@ -1141,7 +1149,10 @@
         allPlayers = d.players || [];
         allMarkers = d.markers || [];
 
-        updatePlayerMarkers(allPlayers);
+        // Im Marker-Modus: Spieler ignorieren
+        if (!MODE_MARKERS) {
+          updatePlayerMarkers(allPlayers);
+        }
         updateMarkerLayers(allMarkers);
         renderLists();
 
@@ -1199,6 +1210,26 @@
     // ═══════════════════════════════════════════════════════════
     // START
     // ═══════════════════════════════════════════════════════════
+
+    // URL-Parameter anwenden
+    if (MODE_MARKERS) {
+      // Spieler-Tab verstecken, direkt auf Marker-Tab schalten
+      const tabPlayers = document.getElementById('tabPlayers');
+      if (tabPlayers) tabPlayers.style.display = 'none';
+      switchTab('markers');
+    }
+
+    if (PRESET_GROUP) {
+      // Bestimmte Gruppe vorfiltern (z.B. ?group=Props)
+      activeGroup = PRESET_GROUP;
+    }
+
+    if (HIDE_SIDEBAR) {
+      // Sidebar direkt ausblenden
+      const sb = document.getElementById('sidebar');
+      if (sb) sb.classList.add('hidden');
+      setTimeout(() => map.invalidateSize(), 100);
+    }
 
     poll();
     setInterval(poll, POLL_INTERVAL);
