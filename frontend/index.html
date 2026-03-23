@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D4rk LiveMap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <!-- Socket.io Client -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+  <style>
+    :root {
+      --bg: #07080f;
+      --s1: #0d0f1a;
+      --s2: #12162a;
+      --s3: #181d31;
+      --border: #1e2540;
+      --border2: #252d45;
+      --text: #c8d0e8;
+      --muted: #4a5275;
+      --teal: #00d4aa;
+      --teal2: #00a884;
+      --red: #f43f5e;
+      --amber: #f59e0b;
+      --blue: #3b82f6;
+      --purple: #a78bfa;
+      --green: #22c55e;
+      --discord: #5865F2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: 'Syne', sans-serif;
+      color: var(--text)
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh
+    }
+
+    /* ── Topbar ── */
+    #topbar {
+      height: 50px;
+      flex-shrink: 0;
+      background: var(--s1);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      z-index: 1000;
+      position: relative;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: .95rem;
+      letter-spacing: -.02em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--teal), var(--blue));
+      border-radius: 6px;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .sep {
+      width: 1px;
+      height: 18px;
+      background: var(--border);
+      flex-shrink: 0
+    }
+
+    .pill {
+      font-size: .68rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 1px solid
+    }
+
+    .pill-teal {
+      color: var(--teal);
+      border-color: var(--teal2);
+      background: #00d4aa12
+    }
+
+    .pill-red {
+      color: var(--red);
+      border-color: #7f1d2a;
+      background: #f43f5e10
+    }
+
+    .pill-gray {
+      color: var(--muted);
+      border-color: var(--border);
+      background: var(--s2)
+    }
+
+    #onlineCount {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem
+    }
+
+    #updateStatus {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .65rem;
+      color: var(--muted)
+    }
+
+    .tb-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .btn {
+      background: var(--s2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 5px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: .75rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      transition: all .15s;
+      white-space: nowrap;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn:hover {
+      background: var(--s3);
+      border-color: var(--border2)
+    }
+
+    .btn-teal {
+      background: #00d4aa12;
+      border-color: var(--teal2);
+      color: var(--teal)
+    }
+
+    .btn-teal:hover {
+      background: #00d4aa22
+    }
+
+    .mini-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      padding: 0 8px;
+      border-left: 1px solid var(--border)
+    }
+
+    .mini-stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1
+    }
+
+    .mini-stat-label {
+      font-size: .55rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em
+    }
+
+    /* ── Latenz-Badge ── */
+    #latencyBadge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .65rem;
+      padding: 2px 7px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--s2);
+      color: var(--muted);
+    }
+
+    #latencyBadge.good {
+      color: var(--green);
+      border-color: #166534;
+      background: #14532d20
+    }
+
+    #latencyBadge.medium {
+      color: var(--amber);
+      border-color: #92400e;
+      background: #78350f20
+    }
+
+    #latencyBadge.bad {
+      color: var(--red);
+      border-color: #7f1d2a;
+      background: #f43f5e10
+    }
+
+    /* ── User Chip ── */
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 3px 10px 3px 4px;
+      background: var(--s2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      cursor: default;
+    }
+
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--discord);
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .user-name {
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--text);
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-logout {
+      background: none;
+      border: none;
+      padding: 5px 8px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: .7rem;
+      border-radius: 6px;
+      transition: all .15s;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+    }
+
+    .btn-logout:hover {
+      color: var(--red);
+      background: #f43f5e12
+    }
+
+    /* ── Main ── */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--s1);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: width .25s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    #sidebar.hidden {
+      width: 0
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 50px;
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--muted);
+      border-bottom: 2px solid transparent;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      color: var(--teal);
+      border-color: var(--teal)
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--text)
+    }
+
+    #searchBox {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    #search {
+      width: 100%;
+      background: var(--s2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-size: .78rem;
+      outline: none;
+      font-family: 'Syne', sans-serif;
+    }
+
+    #search:focus {
+      border-color: var(--teal2)
+    }
+
+    #search::placeholder {
+      color: var(--muted)
+    }
+
+    #tabContent {
+      overflow-y: auto;
+      flex: 1
+    }
+
+    .list-empty {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .78rem
+    }
+
+    .group-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .gf-btn {
+      font-size: .65rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--s2);
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      transition: all .15s;
+    }
+
+    .gf-btn.active {
+      border-color: var(--teal);
+      color: var(--teal);
+      background: #00d4aa12
+    }
+
+    /* ── List Items ── */
+    .p-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 13px;
+      border-bottom: 1px solid #0a0c16;
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .p-item:hover {
+      background: var(--s2)
+    }
+
+    .p-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      border: 2px solid;
+    }
+
+    .p-info {
+      flex: 1;
+      overflow: hidden
+    }
+
+    .p-name {
+      font-size: .8rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .p-detail {
+      font-size: .65rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 1px
+    }
+
+    .m-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 13px;
+      border-bottom: 1px solid #0a0c16;
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .m-item:hover {
+      background: var(--s2)
+    }
+
+    .m-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid
+    }
+
+    .m-info {
+      flex: 1;
+      overflow: hidden
+    }
+
+    .m-name {
+      font-size: .78rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .m-meta {
+      font-size: .63rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 1px
+    }
+
+    .m-del {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 3px;
+      border-radius: 4px;
+      flex-shrink: 0
+    }
+
+    .m-del:hover {
+      color: var(--red);
+      background: #f43f5e12
+    }
+
+    .v-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 13px;
+      border-bottom: 1px solid #0a0c16;
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .v-item:hover {
+      background: var(--s2)
+    }
+
+    .v-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      background: #3b82f615;
+      border: 1px solid #3b82f640;
+    }
+
+    .e-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 7px 13px;
+      border-bottom: 1px solid #0a0c16;
+    }
+
+    .e-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px
+    }
+
+    .e-info {
+      flex: 1;
+      overflow: hidden
+    }
+
+    .e-text {
+      font-size: .75rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .e-time {
+      font-size: .62rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 1px
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px
+    }
+
+    .stat-card {
+      background: var(--s2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px
+    }
+
+    .stat-card-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff
+    }
+
+    .stat-card-label {
+      font-size: .6rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-top: 2px
+    }
+
+    .stats-section {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: .6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted)
+    }
+
+    .uptime-bar {
+      padding: 0 10px 10px
+    }
+
+    .uptime-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .8rem;
+      color: var(--teal)
+    }
+
+    /* ── Karte ── */
+    #mapWrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #07080f
+    }
+
+    .leaflet-container {
+      background: #07080f !important;
+      font-family: 'Syne', sans-serif
+    }
+
+    .leaflet-control-zoom {
+      border: 1px solid var(--border) !important;
+      background: var(--s1) !important;
+      border-radius: 8px !important;
+      overflow: hidden
+    }
+
+    .leaflet-control-zoom a {
+      background: var(--s1) !important;
+      color: var(--text) !important;
+      border-bottom: 1px solid var(--border) !important;
+      width: 28px !important;
+      height: 28px !important;
+      line-height: 28px !important
+    }
+
+    .leaflet-control-zoom a:hover {
+      background: var(--s2) !important
+    }
+
+    .leaflet-control-attribution {
+      background: rgba(7, 8, 15, .75) !important;
+      color: var(--muted) !important;
+      font-size: .6rem !important
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: var(--s2) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 10px !important;
+      box-shadow: 0 12px 32px #000b !important;
+      color: var(--text) !important;
+      padding: 0 !important;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      min-width: 190px
+    }
+
+    .leaflet-popup-tip {
+      background: var(--s2) !important
+    }
+
+    .leaflet-popup-close-button {
+      color: var(--muted) !important;
+      top: 8px !important;
+      right: 10px !important;
+      font-size: 16px !important
+    }
+
+    .pop {
+      padding: 13px 15px
+    }
+
+    .pop-title {
+      font-weight: 700;
+      font-size: .88rem;
+      color: #fff;
+      margin-bottom: 8px;
+      padding-right: 16px
+    }
+
+    .pop-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .72rem;
+      margin-bottom: 4px
+    }
+
+    .pop-key {
+      color: var(--muted)
+    }
+
+    .pop-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text)
+    }
+
+    .pop-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 6px
+    }
+
+    .pop-btn {
+      flex: 1;
+      padding: 5px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .7rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      border: 1px solid;
+      transition: all .15s
+    }
+
+    .pop-btn-blue {
+      background: #0a1428;
+      border-color: #0f2048;
+      color: #60a5fa
+    }
+
+    .pop-btn-blue:hover {
+      background: #0d1a38
+    }
+
+    .pop-btn-red {
+      background: #1a0810;
+      border-color: #7f1d2a;
+      color: var(--red)
+    }
+
+    .pop-btn-red:hover {
+      background: #240b14
+    }
+
+    #coords {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(7, 8, 15, .85);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .7rem;
+      color: var(--muted);
+      pointer-events: none;
+      z-index: 500;
+      white-space: nowrap;
+    }
+
+    #mapToggles {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 500;
+    }
+
+    .map-toggle {
+      background: rgba(13, 15, 26, .9);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: .68rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .map-toggle.on {
+      border-color: var(--teal2);
+      color: var(--teal);
+      background: rgba(0, 212, 170, .08)
+    }
+
+    #loading {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 9999;
+    }
+
+    .spin {
+      width: 36px;
+      height: 36px;
+      border: 2px solid var(--border);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin .7s linear infinite
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .loading-text {
+      font-size: .82rem;
+      color: var(--muted)
+    }
+
+    .pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      flex-shrink: 0;
+      position: relative
+    }
+
+    .pulse::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: var(--teal);
+      opacity: .3;
+      animation: pulse 1.5s ease infinite
+    }
+
+    .pulse.dead {
+      background: var(--red)
+    }
+
+    .pulse.dead::after {
+      background: var(--red);
+      animation: none;
+      opacity: 0
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: .3
+      }
+
+      50% {
+        transform: scale(1.8);
+        opacity: 0
+      }
+    }
+
+    @media(max-width:768px) {
+      #sidebar {
+        display: none
+      }
+
+      .user-name {
+        display: none
+      }
+    }
+
+    /* ── Layer Control Dark Theme ── */
+    .leaflet-control-layers {
+      background: var(--s1) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px !important;
+      color: var(--text) !important;
+      font-family: 'Syne', sans-serif !important;
+      font-size: .75rem !important;
+      font-weight: 600 !important;
+      box-shadow: 0 4px 16px #0008 !important;
+    }
+
+    .leaflet-control-layers-expanded {
+      padding: 8px 12px !important;
+    }
+
+    .leaflet-control-layers label {
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      padding: 4px 0 !important;
+      cursor: pointer !important;
+      color: var(--text) !important;
+      transition: color .15s;
+    }
+
+    .leaflet-control-layers label:hover {
+      color: var(--teal) !important;
+    }
+
+    .leaflet-control-layers-selector {
+      accent-color: var(--teal);
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    .leaflet-control-layers-toggle {
+      background-color: var(--s1) !important;
+      border-radius: 8px !important;
+      width: 32px !important;
+      height: 32px !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div id="topbar">
+      <div class="logo">
+        <div class="logo-badge">🗺️</div>
+        D4rk LiveMap
+      </div>
+      <div class="sep"></div>
+      <span class="pulse dead" id="statusDot"></span>
+      <span id="onlineCount" class="pill pill-gray">–</span>
+      <div class="mini-stat">
+        <span class="mini-stat-val" id="statPlayers">–</span>
+        <span class="mini-stat-label">Spieler</span>
+      </div>
+      <div class="mini-stat">
+        <span class="mini-stat-val" id="statMarkers">–</span>
+        <span class="mini-stat-label">Marker</span>
+      </div>
+      <div class="mini-stat">
+        <span class="mini-stat-val" id="statVehicles">–</span>
+        <span class="mini-stat-label">Fahrzeuge</span>
+      </div>
+      <div class="mini-stat">
+        <span class="mini-stat-val" id="statZones">–</span>
+        <span class="mini-stat-label">Zonen</span>
+      </div>
+      <div class="sep"></div>
+      <span id="latencyBadge">WS –</span>
+      <span id="updateStatus">Verbinde...</span>
+      <div class="tb-right">
+        <button class="btn" onclick="toggleSidebar()">☰ Sidebar</button>
+        <button class="btn" onclick="centerMap()">⌖ Zentrieren</button>
+        <button class="btn btn-teal" id="followBtn" onclick="toggleFollow()">👁 Follow: AUS</button>
+        <div class="sep" id="userSep" style="display:none"></div>
+        <div class="user-chip" id="userChip" style="display:none">
+          <img class="user-avatar" id="userAvatar" src="" alt="">
+          <span class="user-name" id="userName"></span>
+        </div>
+        <a class="btn-logout" href="https://api.d4rkst3r.de/auth/logout" id="logoutBtn" style="display:none"
+          title="Ausloggen">⏻</a>
+      </div>
+    </div>
+
+    <div id="main">
+      <div id="sidebar">
+        <div class="tabs">
+          <div class="tab active" id="tabPlayers" onclick="switchTab('players')">👥 Spieler</div>
+          <div class="tab" id="tabMarkers" onclick="switchTab('markers')">📍 Marker</div>
+          <div class="tab" id="tabVehicles" onclick="switchTab('vehicles')">🚗 Fahrzeuge</div>
+          <div class="tab" id="tabEvents" onclick="switchTab('events')">📋 Events</div>
+          <div class="tab" id="tabStats" onclick="switchTab('stats')">📊 Stats</div>
+        </div>
+        <div id="searchBox">
+          <input id="search" placeholder="Suchen..." oninput="renderLists()">
+        </div>
+        <div id="groupFilter" class="group-filter" style="display:none"></div>
+        <div id="tabContent"></div>
+      </div>
+
+      <div id="mapWrap">
+        <div id="loading">
+          <div class="spin"></div>
+          <p class="loading-text">Verbinde mit Server...</p>
+        </div>
+        <div id="map"></div>
+        <div id="coords">X: – · Y: –</div>
+        <div id="mapToggles">
+          <button class="map-toggle on" id="togglePlayers" onclick="toggleLayer('players')">👤 Spieler</button>
+          <button class="map-toggle on" id="toggleVehicles" onclick="toggleLayer('vehicles')">🚗 Fahrzeuge</button>
+          <button class="map-toggle on" id="toggleMarkers" onclick="toggleLayer('markers')">📍 Marker</button>
+          <button class="map-toggle on" id="toggleZones" onclick="toggleLayer('zones')">🔵 Zonen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════
+    // KONFIGURATION
+    // ═══════════════════════════════════════════════════════════
+    const BACKEND = 'https://api.d4rkst3r.de';
+
+    const URL_PARAMS = new URLSearchParams(window.location.search);
+    const MODE_MARKERS = URL_PARAMS.get('mode') === 'markers';
+    const PRESET_GROUP = URL_PARAMS.get('group') || null;
+    const HIDE_SIDEBAR = URL_PARAMS.get('sidebar') === '0';
+
+    const PLAYER_COLORS = ['#00d4aa', '#60a5fa', '#a78bfa', '#f59e0b', '#22c55e', '#f43f5e', '#06b6d4', '#ec4899'];
+    const GROUP_COLORS = { 'Allgemein': '#60a5fa', 'Polizei': '#f87171', 'Baustelle': '#fbbf24', 'Admin': '#c084fc', 'Props': '#00d4aa', 'Sonstiges': '#4ade80' };
+    const EVENT_COLORS = { playerJoin: '#22c55e', playerLeave: '#f43f5e', markerAdded: '#00d4aa', markerRemoved: '#f59e0b', zoneAdded: '#3b82f6', default: '#4a5275' };
+    const gcolor = g => GROUP_COLORS[g] || GROUP_COLORS['Sonstiges'];
+
+    // ═══════════════════════════════════════════════════════════
+    // SESSION
+    // ═══════════════════════════════════════════════════════════
+    async function loadSession() {
+      try {
+        const r = await fetch(BACKEND + '/auth/me', { credentials: 'include', cache: 'no-store' });
+        if (r.status === 401) { window.location.href = BACKEND + '/login'; return; }
+        const data = await r.json();
+        if (!data.authenticated || !data.user) { window.location.href = BACKEND + '/login'; return; }
+        const u = data.user;
+        document.getElementById('userSep').style.display = '';
+        document.getElementById('userChip').style.display = '';
+        document.getElementById('logoutBtn').style.display = '';
+        document.getElementById('userName').textContent = u.username;
+        if (u.avatar) document.getElementById('userAvatar').src = u.avatar;
+        return true;
+      } catch (e) { console.warn('[Session]', e.message); return false; }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // LEAFLET MAP
+    // ═══════════════════════════════════════════════════════════
+    const GTA_CRS = L.extend({}, L.CRS.Simple, {
+      projection: L.Projection.LonLat,
+      scale: z => Math.pow(2, z), zoom: s => Math.log(s) / Math.LN2,
+      distance: (p1, p2) => Math.sqrt((p2.lng - p1.lng) ** 2 + (p2.lat - p1.lat) ** 2),
+      transformation: new L.Transformation(0.02072, 117.3, -0.0205, 172.8), infinite: true,
+    });
+    const GTA_BOUNDS = [[-4096, -4096], [4096, 4096]];
+    const map = L.map('map', { crs: GTA_CRS, minZoom: 0, maxZoom: 5, zoom: 3, center: [0, 0], preferCanvas: true, zoomControl: false });
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    // ── Tile-Layer definieren ──────────────────────────────────
+    const ERR_TILE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    const TILE_OPT = { minZoom: 0, maxZoom: 5, maxNativeZoom: 5, noWrap: true, errorTileUrl: ERR_TILE };
+
+    const tileSatellite = L.tileLayer('https://map.d4rkst3r.de/tiles/satellite/{z}/{x}/{y}.jpg', { ...TILE_OPT, attribution: 'GTA5 Satellit' });
+    const tileRoad = L.tileLayer('https://map.d4rkst3r.de/tiles/road/{z}/{x}/{y}.jpg', { ...TILE_OPT, attribution: 'GTA5 Straßen' });
+    const tileRoad2 = L.tileLayer('https://map.d4rkst3r.de/tiles/roads2/{z}/{x}/{y}.jpg', { ...TILE_OPT, attribution: 'GTA5 Straßen2' });
+    const tileMinimap = L.tileLayer('https://map.d4rkst3r.de/tiles/minimap/{z}/{x}/{y}.jpg', { ...TILE_OPT, attribution: 'GTA5 Minimap' });
+
+    const TILE_LAYERS = {
+      '🛰 Satellit': tileSatellite,
+      '🗺 Straßen': tileRoad,
+      '🗺 Straßen2': tileRoad2,
+      '🔲 Minimap': tileMinimap,
+    };
+
+    // Zuletzt gewählte Karte aus localStorage laden (Standard: Satellit)
+    const savedLayer = localStorage.getItem('d4rk_mapLayer') || '🛰 Satellit';
+    (TILE_LAYERS[savedLayer] || tileSatellite).addTo(map);
+
+    // Layer-Control (Kartenauswahl) unten links
+    L.control.layers(TILE_LAYERS, null, { position: 'bottomleft', collapsed: true }).addTo(map);
+
+    // Auswahl bei Wechsel speichern
+    map.on('baselayerchange', e => localStorage.setItem('d4rk_mapLayer', e.name));
+
+    map.setView([0, 0], 3);
+    map.whenReady(() => setTimeout(() => document.getElementById('loading').style.display = 'none', 400));
+
+    // ═══════════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════════
+    let allPlayers = [], allMarkers = [], allZones = [], allVehicles = [], allEvents = [], serverStats = null;
+    let playerLayers = {}, markerLayers = {}, zoneLayers = {}, vehicleLayers = {};
+    let activeTab = 'players', activeGroup = null, followPlayer = null;
+    let colorMap = {}, colorIdx = 0;
+    let layerVisible = { players: true, vehicles: true, markers: true, zones: true };
+
+    function getPlayerColor(id) {
+      if (!colorMap[id]) { colorMap[id] = PLAYER_COLORS[colorIdx % PLAYER_COLORS.length]; colorIdx++; }
+      return colorMap[id];
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SOCKET.IO – ersetzt das alte setInterval Polling
+    // ═══════════════════════════════════════════════════════════
+    const socket = io(BACKEND, {
+      withCredentials: true,
+      transports: ['polling'],  // ← nur polling
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 10000,
+    });
+
+    // Verbindung hergestellt
+    socket.on('connect', () => {
+      console.log('[Socket.io] Verbunden:', socket.id, '| Transport:', socket.io.engine.transport.name);
+      setStatus(true);
+      updateLatency();
+    });
+
+    // Verbindung getrennt
+    socket.on('disconnect', (reason) => {
+      console.warn('[Socket.io] Getrennt:', reason);
+      setStatus(false);
+      document.getElementById('updateStatus').textContent = 'Verbindung getrennt...';
+      document.getElementById('latencyBadge').textContent = 'WS –';
+      document.getElementById('latencyBadge').className = '';
+    });
+
+    // Reconnecting
+    socket.on('connect_error', (err) => {
+      console.warn('[Socket.io] Verbindungsfehler:', err.message);
+      setStatus(false);
+      document.getElementById('updateStatus').textContent = 'Reconnecting...';
+    });
+
+    // Karten-Update vom Backend empfangen
+    socket.on('map:update', (data) => {
+      const t0 = performance.now();
+
+      allPlayers = data.players || [];
+      allMarkers = data.markers || [];
+      allZones = data.zones || [];
+      allVehicles = data.vehicles || allPlayers.filter(p => p.inVeh).map(p => ({
+        playerId: p.id, playerName: p.name, vehicle: p.veh, x: p.x, y: p.y, z: p.z,
+      }));
+
+      if (!MODE_MARKERS) updatePlayerMarkers(allPlayers);
+      updateVehicleLayers(allVehicles);
+      updateMarkerLayers(allMarkers);
+      updateZoneLayers(allZones);
+      renderLists();
+
+      // Topbar Stats
+      document.getElementById('statPlayers').textContent = allPlayers.length;
+      document.getElementById('statMarkers').textContent = allMarkers.length;
+      document.getElementById('statVehicles').textContent = allVehicles.length;
+      document.getElementById('statZones').textContent = allZones.length;
+
+      const pill = document.getElementById('onlineCount');
+      pill.textContent = allPlayers.length + ' Online';
+      pill.className = 'pill pill-teal';
+
+      document.getElementById('updateStatus').textContent =
+        'Live · ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      if (followPlayer) { const p = allPlayers.find(x => x.id === followPlayer); if (p) map.panTo([p.y, p.x], { animate: true, duration: 0.3 }); }
+
+      const renderMs = Math.round(performance.now() - t0);
+      if (renderMs > 50) console.debug(`[Render] ${renderMs}ms`);
+    });
+
+    // FiveM offline
+    socket.on('map:offline', (data) => {
+      setStatus(false);
+      document.getElementById('updateStatus').textContent = 'FiveM offline';
+    });
+
+    // Ping/Latenz messen
+    function updateLatency() {
+      const t0 = Date.now();
+      socket.emit('ping', () => {
+        const ms = Date.now() - t0;
+        const badge = document.getElementById('latencyBadge');
+        badge.textContent = `WS ${ms}ms`;
+        badge.className = ms < 100 ? 'good' : ms < 300 ? 'medium' : 'bad';
+      });
+    }
+    setInterval(updateLatency, 5000);
+
+    function setStatus(online) {
+      document.getElementById('statusDot').className = online ? 'pulse' : 'pulse dead';
+      if (!online) {
+        document.getElementById('onlineCount').className = 'pill pill-red';
+        document.getElementById('onlineCount').textContent = 'Offline';
+      }
+    }
+
+    // Events separat per HTTP holen (alle 10s reicht)
+    async function fetchEvents() {
+      try {
+        const r = await fetch(BACKEND + '/api/events?limit=50', { credentials: 'include' });
+        if (r.ok) { const d = await r.json(); allEvents = d.events || []; if (activeTab === 'events') renderLists(); }
+      } catch (_) { }
+    }
+    async function fetchStats() {
+      try {
+        const r = await fetch(BACKEND + '/api/stats', { credentials: 'include' });
+        if (r.ok) { serverStats = await r.json(); if (activeTab === 'stats') renderLists(); }
+      } catch (_) { }
+    }
+    setInterval(fetchEvents, 10000);
+    setInterval(fetchStats, 15000);
+    fetchEvents();
+    fetchStats();
+
+    // ═══════════════════════════════════════════════════════════
+    // LAYER TOGGLE
+    // ═══════════════════════════════════════════════════════════
+    function toggleLayer(name) {
+      layerVisible[name] = !layerVisible[name];
+      document.getElementById('toggle' + name.charAt(0).toUpperCase() + name.slice(1)).classList.toggle('on', layerVisible[name]);
+      const layers = { players: playerLayers, vehicles: vehicleLayers, markers: markerLayers, zones: zoneLayers };
+      for (const id in layers[name]) {
+        if (layerVisible[name]) { if (!map.hasLayer(layers[name][id])) layers[name][id].addTo(map); }
+        else { if (map.hasLayer(layers[name][id])) map.removeLayer(layers[name][id]); }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ICONS
+    // ═══════════════════════════════════════════════════════════
+    function makePlayerIcon(color, name) {
+      return L.divIcon({
+        className: '', iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -20],
+        html: `<div style="position:relative;width:32px;height:32px">
+          <div style="width:32px;height:32px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${color};box-shadow:0 0 10px ${color}55;">👤</div>
+          <div style="position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;white-space:nowrap;background:rgba(7,8,15,.85);border:1px solid ${color}66;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;color:#fff;">${name}</div>
+        </div>` });
+    }
+    function makeVehicleIcon(color) {
+      return L.divIcon({
+        className: '', iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -18],
+        html: `<div style="width:30px;height:30px;border-radius:6px;background:${color}20;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 8px ${color}44;">🚗</div>`
+      });
+    }
+    function makeMarkerIcon(color, icon) {
+      const icons = { box: '📦', cone: '🚧', barrier: '🚔', tent: '⛺', lamp: '💡', blip: '⭕', default: '📍' };
+      return L.divIcon({
+        className: '', iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -18],
+        html: `<div style="width:30px;height:30px;border-radius:50%;background:${color}20;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 0 8px ${color}44;">${icons[icon] || icons.default}</div>`
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SPIELER
+    // ═══════════════════════════════════════════════════════════
+    function updatePlayerMarkers(players) {
+      const seen = new Set();
+      players.forEach(p => {
+        seen.add(p.id);
+        const col = getPlayerColor(p.id);
+        if (playerLayers[p.id]) { playerLayers[p.id].setLatLng([p.y, p.x]); playerLayers[p.id].setIcon(makePlayerIcon(col, p.name)); }
+        else {
+          const lm = L.marker([p.y, p.x], { icon: makePlayerIcon(col, p.name), zIndexOffset: 1000 });
+          lm.bindPopup(() => buildPlayerPopup(p.id), { maxWidth: 240 });
+          lm.on('click', () => { const cur = allPlayers.find(x => x.id === p.id); if (cur) lm.setPopupContent(buildPlayerPopup(cur.id)); });
+          if (layerVisible.players) lm.addTo(map);
+          playerLayers[p.id] = lm;
+        }
+      });
+      for (const id in playerLayers) {
+        if (!seen.has(+id)) {
+          map.removeLayer(playerLayers[id]); delete playerLayers[id];
+          if (followPlayer === +id) { followPlayer = null; updateFollowBtn(); }
+        }
+      }
+    }
+    function buildPlayerPopup(id) {
+      const p = allPlayers.find(x => x.id === id);
+      if (!p) return '<div class="pop"><p style="color:var(--muted)">Spieler offline</p></div>';
+      return `<div class="pop">
+        <div class="pop-title">${p.name}</div>
+        <div class="pop-row"><span class="pop-key">Server-ID</span><span class="pop-val">#${p.id}</span></div>
+        <div class="pop-row"><span class="pop-key">Position</span><span class="pop-val">${(+p.x).toFixed(0)}, ${(+p.y).toFixed(0)}</span></div>
+        <div class="pop-row"><span class="pop-key">Höhe</span><span class="pop-val">${(+p.z).toFixed(1)}</span></div>
+        ${p.inVeh ? `<div class="pop-row"><span class="pop-key">Fahrzeug</span><span class="pop-val">${p.veh || '?'}</span></div>` : ''}
+        <div class="pop-actions">
+          <button class="pop-btn pop-btn-blue" onclick="flyToPlayer(${id})">🎯 Anzeigen</button>
+          <button class="pop-btn pop-btn-red"  onclick="setFollow(${id})">${followPlayer === id ? '⛔ Unfollow' : '👁 Follow'}</button>
+        </div></div>`;
+    }
+    function flyToPlayer(id) { const p = allPlayers.find(x => x.id === id); if (p) map.flyTo([p.y, p.x], 3, { animate: true, duration: 0.5 }); }
+    function setFollow(id) { followPlayer = (followPlayer === id) ? null : id; updateFollowBtn(); renderLists(); if (id && playerLayers[id]) playerLayers[id].closePopup(); }
+    function updateFollowBtn() {
+      const btn = document.getElementById('followBtn');
+      if (followPlayer) { const p = allPlayers.find(x => x.id === followPlayer); btn.textContent = '👁 Follow: ' + (p ? p.name : '#' + followPlayer); btn.className = 'btn btn-teal'; }
+      else { btn.textContent = '👁 Follow: AUS'; btn.className = 'btn'; }
+    }
+    function toggleFollow() { followPlayer = null; updateFollowBtn(); }
+
+    // ═══════════════════════════════════════════════════════════
+    // FAHRZEUGE
+    // ═══════════════════════════════════════════════════════════
+    function updateVehicleLayers(vehicles) {
+      const seen = new Set();
+      vehicles.forEach(v => {
+        const key = 'v_' + v.playerId; seen.add(key);
+        const col = getPlayerColor(v.playerId);
+        if (vehicleLayers[key]) { vehicleLayers[key].setLatLng([v.y, v.x]); }
+        else {
+          const lm = L.marker([v.y, v.x], { icon: makeVehicleIcon(col) });
+          lm.bindPopup(`<div class="pop"><div class="pop-title">🚗 ${v.vehicle || 'Fahrzeug'}</div>
+            <div class="pop-row"><span class="pop-key">Fahrer</span><span class="pop-val">${v.playerName}</span></div>
+            <div class="pop-row"><span class="pop-key">Position</span><span class="pop-val">${(+v.x).toFixed(0)}, ${(+v.y).toFixed(0)}</span></div>
+            <div class="pop-actions"><button class="pop-btn pop-btn-blue" onclick="flyToPlayer(${v.playerId})">🎯 Anzeigen</button></div></div>`, { maxWidth: 220 });
+          if (layerVisible.vehicles) lm.addTo(map);
+          vehicleLayers[key] = lm;
+        }
+      });
+      for (const id in vehicleLayers) { if (!seen.has(id)) { map.removeLayer(vehicleLayers[id]); delete vehicleLayers[id]; } }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // MARKER
+    // ═══════════════════════════════════════════════════════════
+    function updateMarkerLayers(markers) {
+      const seen = new Set();
+      markers.forEach(m => {
+        seen.add(m.id); const col = m.color || gcolor(m.group);
+        if (markerLayers[m.id]) { markerLayers[m.id].setLatLng([m.y, m.x]); }
+        else {
+          const lm = L.marker([m.y, m.x], { icon: makeMarkerIcon(col, m.icon) });
+          lm.bindPopup(`<div class="pop"><div class="pop-title">${m.label || m.id}</div>
+            <div class="pop-row"><span class="pop-key">Position</span><span class="pop-val">${(+m.x).toFixed(1)}, ${(+m.y).toFixed(1)}</span></div>
+            <div class="pop-row"><span class="pop-key">Gruppe</span><span class="pop-val">${m.group || '–'}</span></div>
+            <div class="pop-row"><span class="pop-key">Quelle</span><span class="pop-val">${m.source || '–'}</span></div>
+            <div class="pop-actions"><button class="pop-btn pop-btn-red" onclick="removeMarker('${m.id}')">🗑 Löschen</button></div></div>`, { maxWidth: 240 });
+          if (layerVisible.markers) lm.addTo(map);
+          markerLayers[m.id] = lm;
+        }
+      });
+      for (const id in markerLayers) { if (!seen.has(id)) { map.removeLayer(markerLayers[id]); delete markerLayers[id]; } }
+    }
+    async function removeMarker(id) {
+      if (!confirm('Marker "' + id + '" löschen?')) return;
+      await fetch(BACKEND + '/api/markers/' + encodeURIComponent(id), { method: 'DELETE', credentials: 'include' }).catch(() => { });
+      if (markerLayers[id]) { map.removeLayer(markerLayers[id]); delete markerLayers[id]; }
+      allMarkers = allMarkers.filter(m => m.id !== id);
+      renderLists();
+      if (document.querySelector('.leaflet-popup')) map.closePopup();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ZONEN
+    // ═══════════════════════════════════════════════════════════
+    function updateZoneLayers(zones) {
+      const seen = new Set();
+      zones.forEach(z => {
+        seen.add(z.id); if (zoneLayers[z.id]) return;
+        const col = z.color || '#3b82f6';
+        const opts = { color: col, fillColor: z.fillColor || col, fillOpacity: z.opacity ?? 0.2, weight: 2, opacity: 0.8 };
+        const layer = (z.type === 'polygon' && Array.isArray(z.points) && z.points.length > 2)
+          ? L.polygon(z.points.map(p => [p.y, p.x]), opts)
+          : L.circle([z.y, z.x], { ...opts, radius: z.radius || 50 });
+        layer.bindPopup(`<div class="pop"><div class="pop-title">🔵 ${z.label || z.id}</div>
+          <div class="pop-row"><span class="pop-key">Typ</span><span class="pop-val">${z.type || 'circle'}</span></div>
+          <div class="pop-row"><span class="pop-key">Mittelpunkt</span><span class="pop-val">${(+z.x).toFixed(0)}, ${(+z.y).toFixed(0)}</span></div>
+          ${z.radius ? `<div class="pop-row"><span class="pop-key">Radius</span><span class="pop-val">${z.radius}m</span></div>` : ''}
+          <div class="pop-row"><span class="pop-key">Gruppe</span><span class="pop-val">${z.group || '–'}</span></div></div>`, { maxWidth: 220 });
+        if (layerVisible.zones) layer.addTo(map);
+        zoneLayers[z.id] = layer;
+      });
+      for (const id in zoneLayers) { if (!seen.has(id)) { map.removeLayer(zoneLayers[id]); delete zoneLayers[id]; } }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SIDEBAR
+    // ═══════════════════════════════════════════════════════════
+    function switchTab(tab) {
+      activeTab = tab;
+      ['players', 'markers', 'vehicles', 'events', 'stats'].forEach(t =>
+        document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab));
+      activeGroup = null;
+      document.getElementById('searchBox').style.display = ['stats', 'events'].includes(tab) ? 'none' : '';
+      renderLists();
+    }
+
+    function renderLists() {
+      const search = (document.getElementById('search').value || '').toLowerCase();
+      const content = document.getElementById('tabContent');
+      const gf = document.getElementById('groupFilter');
+      gf.style.display = 'none';
+
+      if (activeTab === 'players') {
+        const f = allPlayers.filter(p => !search || p.name.toLowerCase().includes(search) || String(p.id).includes(search));
+        content.innerHTML = f.length ? f.map(p => {
+          const col = getPlayerColor(p.id); const isFlw = followPlayer === p.id;
+          return `<div class="p-item" onclick="flyToPlayer(${p.id})">
+            <div class="p-avatar" style="background:${col}22;border-color:${col};color:${col}">${p.id}</div>
+            <div class="p-info"><div class="p-name">${p.name}</div>
+            <div class="p-detail">${p.inVeh ? '🚗 ' + (p.veh || 'Fahrzeug') : '🚶 Zu Fuß'} · ${(+p.x).toFixed(0)}, ${(+p.y).toFixed(0)}</div></div>
+            <button class="m-del" onclick="event.stopPropagation();setFollow(${p.id})">${isFlw ? '⛔' : '👁'}</button></div>`;
+        }).join('') : '<div class="list-empty">Keine Spieler online</div>';
+
+      } else if (activeTab === 'markers') {
+        const groups = [...new Set(allMarkers.map(m => m.group || 'Sonstiges'))];
+        gf.style.display = groups.length > 1 ? 'flex' : 'none';
+        gf.innerHTML = [{ label: 'Alle', active: !activeGroup }].concat(groups.map(g => ({ label: g, active: activeGroup === g })))
+          .map(g => `<button class="gf-btn ${g.active ? 'active' : ''}" onclick="setGroupFilter('${g.label}')">${g.label}</button>`).join('');
+        const f = allMarkers.filter(m => { if (activeGroup && (m.group || 'Sonstiges') !== activeGroup) return false; if (search && !(m.label || m.id).toLowerCase().includes(search)) return false; return true; });
+        content.innerHTML = f.length ? f.map(m => {
+          const col = m.color || gcolor(m.group);
+          return `<div class="m-item" onclick="flyToMarker('${m.id}')">
+            <div class="m-dot" style="background:${col}44;border-color:${col}"></div>
+            <div class="m-info"><div class="m-name">${m.label || m.id}</div><div class="m-meta">${(+m.x).toFixed(0)}, ${(+m.y).toFixed(0)} · ${m.group || '?'}</div></div>
+            <button class="m-del" onclick="event.stopPropagation();removeMarker('${m.id}')">✕</button></div>`;
+        }).join('') : '<div class="list-empty">Keine Marker</div>';
+
+      } else if (activeTab === 'vehicles') {
+        const f = allVehicles.filter(v => !search || (v.playerName || '').toLowerCase().includes(search) || (v.vehicle || '').toLowerCase().includes(search));
+        content.innerHTML = f.length ? f.map(v =>
+          `<div class="v-item" onclick="flyToVehicle(${v.playerId})">
+            <div class="v-icon">🚗</div>
+            <div class="p-info"><div class="p-name">${v.vehicle || 'Fahrzeug'}</div>
+            <div class="p-detail">👤 ${v.playerName} · ${(+v.x).toFixed(0)}, ${(+v.y).toFixed(0)}</div></div></div>`
+        ).join('') : '<div class="list-empty">Keine Fahrzeuge</div>';
+
+      } else if (activeTab === 'events') {
+        const f = allEvents.filter(e => !search || (e.data?.name || '').toLowerCase().includes(search) || e.type.toLowerCase().includes(search));
+        const labels = { playerJoin: 'Beigetreten', playerLeave: 'Verlassen', markerAdded: 'Marker +', markerRemoved: 'Marker −', zoneAdded: 'Zone +' };
+        content.innerHTML = f.length ? f.map(e => {
+          const col = EVENT_COLORS[e.type] || EVENT_COLORS.default;
+          const time = new Date(e.timestamp * 1000).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          return `<div class="e-item"><div class="e-dot" style="background:${col}"></div>
+            <div class="e-info"><div class="e-text">${labels[e.type] || e.type}${e.data?.name ? ': ' + e.data.name : ''}</div>
+            <div class="e-time">${time}</div></div></div>`;
+        }).join('') : '<div class="list-empty">Keine Events</div>';
+
+      } else if (activeTab === 'stats') {
+        const s = serverStats;
+        content.innerHTML = `
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-card-val" style="color:var(--teal)">${allPlayers.length}</div><div class="stat-card-label">Spieler Online</div></div>
+            <div class="stat-card"><div class="stat-card-val" style="color:var(--blue)">${allVehicles.length}</div><div class="stat-card-label">Fahrzeuge</div></div>
+            <div class="stat-card"><div class="stat-card-val" style="color:var(--amber)">${allMarkers.length}</div><div class="stat-card-label">Marker</div></div>
+            <div class="stat-card"><div class="stat-card-val" style="color:var(--purple)">${allZones.length}</div><div class="stat-card-label">Zonen</div></div>
+          </div>
+          <div class="stats-section">Socket.io</div>
+          <div class="stats-grid" style="padding-top:0">
+            <div class="stat-card"><div class="stat-card-val" id="statsLatency" style="color:var(--green)">–</div><div class="stat-card-label">Latenz</div></div>
+            <div class="stat-card"><div class="stat-card-val" style="color:var(--teal)">${socket.connected ? '✓' : '✗'}</div><div class="stat-card-label">Verbunden</div></div>
+          </div>
+          <div class="stats-section">Server Uptime</div>
+          <div class="uptime-bar"><div class="uptime-val">${s ? formatUptime(s.uptime) : '–'}</div></div>
+          ${s && s.marker_groups?.length ? `
+          <div class="stats-section">Marker-Gruppen</div>
+          <div class="stats-grid" style="padding-top:0">${s.marker_groups.map(g =>
+          `<div class="stat-card"><div class="stat-card-val">${g.count}</div><div class="stat-card-label">${g.group}</div></div>`).join('')}
+          </div>` : ''}`;
+        // Latenz direkt eintragen
+        const badge = document.getElementById('latencyBadge');
+        const statsLat = document.getElementById('statsLatency');
+        if (statsLat && badge) statsLat.textContent = badge.textContent;
+      }
+    }
+
+    function formatUptime(s) { if (!s) return '–'; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60); return `${h}h ${m}m ${sec}s`; }
+    function setGroupFilter(g) { activeGroup = (g === 'Alle') ? null : g; renderLists(); }
+    function flyToMarker(id) { const m = allMarkers.find(x => x.id === id); if (!m) return; map.flyTo([m.y, m.x], 3, { animate: true, duration: 0.5 }); setTimeout(() => { if (markerLayers[id]) markerLayers[id].openPopup(); }, 550); }
+    function flyToVehicle(pid) { const v = allVehicles.find(x => x.playerId === pid); if (v) map.flyTo([v.y, v.x], 3, { animate: true, duration: 0.5 }); }
+
+    // ═══════════════════════════════════════════════════════════
+    // UI HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function centerMap() { map.flyToBounds(GTA_BOUNDS, { animate: true, duration: 0.8, padding: [20, 20] }); }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); setTimeout(() => map.invalidateSize(), 300); }
+    map.on('mousemove', e => { document.getElementById('coords').textContent = `X: ${e.latlng.lng.toFixed(1)} · Y: ${e.latlng.lat.toFixed(1)}`; });
+
+    // ═══════════════════════════════════════════════════════════
+    // START
+    // ═══════════════════════════════════════════════════════════
+    if (MODE_MARKERS) { document.getElementById('tabPlayers').style.display = 'none'; switchTab('markers'); }
+    if (PRESET_GROUP) activeGroup = PRESET_GROUP;
+    if (HIDE_SIDEBAR) { document.getElementById('sidebar').classList.add('hidden'); setTimeout(() => map.invalidateSize(), 100); }
+
+    loadSession();
+  </script>
+</body>
+
+</html>

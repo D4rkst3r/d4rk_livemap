@@ -1,0 +1,27 @@
+# Abhängigkeiten
+node_modules/
+
+# Konfiguration (enthält Secrets!)
+backend/.env
+
+# Logs
+*.log
+logs/
+
+# Tiles (zu groß für Git)
+frontend/tiles/
+
+# OS-Dateien
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# PM2
+.pm2/
+
+# Temporäre Dateien
+tmp/
+temp/
