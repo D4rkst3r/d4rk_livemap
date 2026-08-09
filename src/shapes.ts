@@ -14,6 +14,16 @@
 //
 // Deshalb: die Wurzel bekommt nur Größe, einmalig und über Einzel-Eigenschaften. Alles
 // Sichtbare hängt darunter.
+//
+// LESBARKEIT über einem Satellitenbild ist der zweite Punkt, der die Gestaltung
+// bestimmt. Der erste Entwurf hatte farbige Symbole auf durchscheinendem Grund in
+// derselben Farbe — über hellem Sand und dunklem Wasser war davon fast nichts zu
+// sehen. Jetzt gilt die Regel, die auch echte Kartendienste benutzen:
+//
+//   deckende Farbfläche · weißes Symbol · dunkler Saum darum
+//
+// Der Saum ist der eigentliche Trick. Er trennt den Punkt von hellem UND von dunklem
+// Untergrund, und deshalb funktioniert dieselbe Farbe über Wüste und über Meer.
 
 import { headingToBearing } from './coords'
 import { iconSvg } from './icons'
@@ -58,17 +68,21 @@ export function playerNode(el: HTMLElement, p: PlayerDot, color: string): HTMLEl
     const tag = child(el, 1)
 
     dot.style.cssText =
-        `width:32px;height:32px;border-radius:50%;background:${color}22;` +
-        `border:2px solid ${color};display:flex;align-items:center;justify-content:center;` +
-        `box-shadow:0 0 10px ${color}55`
+        'width:28px;height:28px;margin:2px;border-radius:50%;' +
+        'display:flex;align-items:center;justify-content:center;color:#fff;' +
+        `background:${color};` +
+        // Zwei Ringe statt eines: innen ein heller Rand, damit der Punkt auf dunklem
+        // Wasser nicht verschwindet, außen ein dunkler, damit er auf hellem Sand
+        // nicht ausfranst. Danach erst der weiche Schatten.
+        `box-shadow:0 0 0 1.5px rgba(255,255,255,.55), 0 0 0 3.5px rgba(7,8,15,.65),` +
+        ` 0 2px 6px rgba(0,0,0,.5)`
     // Symbol nur neu setzen, wenn es sich wirklich ändert: `innerHTML` bei jedem Takt
     // baut sonst zweimal die Sekunde ein SVG neu, für jeden Spieler.
     const glyph = p.vehicle ? 'car' : 'user'
     if (dot.dataset.icon !== glyph) {
         dot.dataset.icon = glyph
-        dot.innerHTML = iconSvg(glyph, 15)
+        dot.innerHTML = iconSvg(glyph, 14, 2.3)
     }
-    dot.style.color = color
 
     // Blickrichtung dreht NUR den Punkt. Drehte man den Marker selbst, stünde der
     // Name kopfüber — und ein Name, den man drehen muss, ist keiner.
@@ -78,9 +92,11 @@ export function playerNode(el: HTMLElement, p: PlayerDot, color: string): HTMLEl
     // Der Name steht unter dem Punkt und nicht darin: übereinander gelegt wird er bei
     // zwei Spielern nebeneinander unlesbar, darunter verschiebt er sich nur.
     tag.style.cssText =
-        'position:absolute;top:34px;left:50%;transform:translateX(-50%);white-space:nowrap;' +
-        `background:rgba(7,8,15,.85);border:1px solid ${color}66;border-radius:4px;` +
-        'padding:1px 5px;font-size:9px;font-weight:700;color:#fff;pointer-events:none'
+        'position:absolute;top:33px;left:50%;transform:translateX(-50%);white-space:nowrap;' +
+        'background:rgba(7,8,15,.92);border-radius:4px;padding:1px 5px;' +
+        `border-bottom:2px solid ${color};` +
+        'font-size:9.5px;font-weight:700;color:#fff;letter-spacing:.01em;' +
+        'text-shadow:0 1px 2px rgba(0,0,0,.6);pointer-events:none'
     if (tag.textContent !== p.name) tag.textContent = p.name
     tag.style.display = p.name ? '' : 'none'
 
@@ -96,12 +112,14 @@ export function markerNode(el: HTMLElement, m: MapMarker): HTMLElement {
     const glyph = MARKER_ICONS[m.icon ?? 'default'] ?? m.icon ?? 'map-pin'
     const dot = child(el, 0)
     dot.style.cssText =
-        `width:30px;height:30px;border-radius:50%;background:${color}20;` +
-        `border:2px solid ${color};display:flex;align-items:center;justify-content:center;` +
-        `color:${color};box-shadow:0 0 8px ${color}44`
+        'width:26px;height:26px;margin:2px;border-radius:50%;' +
+        'display:flex;align-items:center;justify-content:center;color:#fff;' +
+        `background:${color};` +
+        'box-shadow:0 0 0 1.5px rgba(255,255,255,.5), 0 0 0 3px rgba(7,8,15,.6),' +
+        ' 0 2px 5px rgba(0,0,0,.45)'
     if (dot.dataset.icon !== glyph) {
         dot.dataset.icon = glyph
-        dot.innerHTML = iconSvg(glyph, 15)
+        dot.innerHTML = iconSvg(glyph, 14, 2.3)
     }
     if (m.label) el.title = m.label
     return el

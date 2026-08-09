@@ -6,41 +6,41 @@ const E = [0.02072, 117.3, -0.0205, 172.8], f = {
   minY: -4058,
   maxY: 8429
 }, g = { minX: -4e3, maxX: 4500, minY: -4e3, maxY: 8e3 }, y = 256, z = Math.PI / 180, R = 180 / Math.PI;
-function V(o, t) {
+function V(n, t) {
   return [
-    Math.min(f.maxX, Math.max(f.minX, o)),
+    Math.min(f.maxX, Math.max(f.minX, n)),
     Math.min(f.maxY, Math.max(f.minY, t))
   ];
 }
-function l(o, t, a = E) {
-  const [e, n] = V(o, t), i = a[0] * e + a[1], r = a[2] * n + a[3], s = i / y * 360 - 180, h = Math.atan(Math.sinh(Math.PI * (1 - 2 * r / y))) * R;
+function l(n, t, a = E) {
+  const [e, o] = V(n, t), r = a[0] * e + a[1], i = a[2] * o + a[3], s = r / y * 360 - 180, h = Math.atan(Math.sinh(Math.PI * (1 - 2 * i / y))) * R;
   return [s, h];
 }
-function $(o, t, a = E) {
-  const e = (o + 180) / 360 * y, n = y / 2 * (1 - Math.asinh(Math.tan(t * z)) / Math.PI);
-  return [(e - a[1]) / a[0], (n - a[3]) / a[2]];
+function O(n, t, a = E) {
+  const e = (n + 180) / 360 * y, o = y / 2 * (1 - Math.asinh(Math.tan(t * z)) / Math.PI);
+  return [(e - a[1]) / a[0], (o - a[3]) / a[2]];
 }
-function O(o) {
-  return (360 - o % 360 + 360) % 360;
+function X(n) {
+  return (360 - n % 360 + 360) % 360;
 }
-const X = {
+const N = {
   satellite: { label: "Satellit", dark: !0 },
   road: { label: "Straßen", dark: !0 },
   roads2: { label: "Straßen 2", dark: !0 },
   minimap: { label: "Minimap", dark: !0 }
 }, C = 0, H = 5;
-function L(o, t = "satellite", a = "#07080f", e) {
-  const n = o.replace(/\/+$/, "");
+function L(n, t = "satellite", a = "#07080f", e) {
+  const o = n.replace(/\/+$/, "");
   return {
     version: 8,
     sources: {
       gta: {
         type: "raster",
-        tiles: [(e ?? "{base}/tiles/{style}/{z}/{x}/{y}.jpg").replace("{base}", n).replace("{style}", t)],
+        tiles: [(e ?? "{base}/tiles/{style}/{z}/{x}/{y}.jpg").replace("{base}", o).replace("{style}", t)],
         tileSize: 256,
         minzoom: C,
         maxzoom: H,
-        attribution: `GTA5 ${X[t].label}`
+        attribution: `GTA5 ${N[t].label}`
       }
     },
     layers: [
@@ -76,11 +76,11 @@ const S = {
   "building-2": '<path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/>',
   pin: '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>'
 };
-function P(o, t = 16) {
-  const a = S[o] ?? S["map-pin"];
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="' + t + '" height="' + t + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + a + "</svg>";
+function P(n, t = 16, a = 2) {
+  const e = S[n] ?? S["map-pin"];
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="' + t + '" height="' + t + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + a + '" stroke-linecap="round" stroke-linejoin="round">' + e + "</svg>";
 }
-const N = {
+const Y = {
   box: "package",
   cone: "traffic-cone",
   barrier: "shield",
@@ -100,46 +100,46 @@ const N = {
   missing: "user-search",
   alert: "triangle-alert"
 };
-function Z(o, t) {
-  o.style.width = t + "px", o.style.height = t + "px", o.style.cursor = "pointer";
+function Z(n, t) {
+  n.style.width = t + "px", n.style.height = t + "px", n.style.cursor = "pointer";
 }
-function v(o, t) {
-  let a = o.children[t];
+function b(n, t) {
+  let a = n.children[t];
   for (; !a; )
-    o.appendChild(document.createElement("div")), a = o.children[t];
+    n.appendChild(document.createElement("div")), a = n.children[t];
   return a;
 }
-function T(o, t, a) {
-  Z(o, 32);
-  const e = v(o, 0), n = v(o, 1);
-  e.style.cssText = `width:32px;height:32px;border-radius:50%;background:${a}22;border:2px solid ${a};display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px ${a}55`;
-  const i = t.vehicle ? "car" : "user";
-  return e.dataset.icon !== i && (e.dataset.icon = i, e.innerHTML = P(i, 15)), e.style.color = a, e.style.transform = t.heading != null ? `rotate(${O(t.heading)}deg)` : "", n.style.cssText = `position:absolute;top:34px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(7,8,15,.85);border:1px solid ${a}66;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;color:#fff;pointer-events:none`, n.textContent !== t.name && (n.textContent = t.name), n.style.display = t.name ? "" : "none", o;
+function T(n, t, a) {
+  Z(n, 32);
+  const e = b(n, 0), o = b(n, 1);
+  e.style.cssText = `width:28px;height:28px;margin:2px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:${a};box-shadow:0 0 0 1.5px rgba(255,255,255,.55), 0 0 0 3.5px rgba(7,8,15,.65), 0 2px 6px rgba(0,0,0,.5)`;
+  const r = t.vehicle ? "car" : "user";
+  return e.dataset.icon !== r && (e.dataset.icon = r, e.innerHTML = P(r, 14, 2.3)), e.style.transform = t.heading != null ? `rotate(${X(t.heading)}deg)` : "", o.style.cssText = `position:absolute;top:33px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(7,8,15,.92);border-radius:4px;padding:1px 5px;border-bottom:2px solid ${a};font-size:9.5px;font-weight:700;color:#fff;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,.6);pointer-events:none`, o.textContent !== t.name && (o.textContent = t.name), o.style.display = t.name ? "" : "none", n;
 }
-function A(o, t) {
-  Z(o, 30);
-  const a = t.color || "#3b82f6", e = N[t.icon ?? "default"] ?? t.icon ?? "map-pin", n = v(o, 0);
-  return n.style.cssText = `width:30px;height:30px;border-radius:50%;background:${a}20;border:2px solid ${a};display:flex;align-items:center;justify-content:center;color:${a};box-shadow:0 0 8px ${a}44`, n.dataset.icon !== e && (n.dataset.icon = e, n.innerHTML = P(e, 15)), t.label && (o.title = t.label), o;
+function A(n, t) {
+  Z(n, 30);
+  const a = t.color || "#3b82f6", e = Y[t.icon ?? "default"] ?? t.icon ?? "map-pin", o = b(n, 0);
+  return o.style.cssText = `width:26px;height:26px;margin:2px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:${a};box-shadow:0 0 0 1.5px rgba(255,255,255,.5), 0 0 0 3px rgba(7,8,15,.6), 0 2px 5px rgba(0,0,0,.45)`, o.dataset.icon !== e && (o.dataset.icon = e, o.innerHTML = P(e, 14, 2.3)), t.label && (n.title = t.label), n;
 }
-function Y(o, t, a, e = 48) {
-  const n = [];
-  for (let i = 0; i <= e; i++) {
-    const r = i / e * Math.PI * 2;
-    n.push(l(o + Math.cos(r) * a, t + Math.sin(r) * a));
+function F(n, t, a, e = 48) {
+  const o = [];
+  for (let r = 0; r <= e; r++) {
+    const i = r / e * Math.PI * 2;
+    o.push(l(n + Math.cos(i) * a, t + Math.sin(i) * a));
   }
-  return n;
+  return o;
 }
-function F(o) {
+function G(n) {
   return {
     type: "FeatureCollection",
-    features: o.map((t) => {
+    features: n.map((t) => {
       const a = t.color || "#3b82f6";
       return {
         type: "Feature",
         geometry: { type: "Polygon", coordinates: [t.type === "polygon" && t.points && t.points.length > 2 ? [
-          ...t.points.map((n) => l(n.x, n.y)),
+          ...t.points.map((o) => l(o.x, o.y)),
           l(t.points[0].x, t.points[0].y)
-        ] : Y(t.x, t.y, t.radius ?? 50)] },
+        ] : F(t.x, t.y, t.radius ?? 50)] },
         properties: {
           id: t.id,
           label: t.label ?? t.id,
@@ -159,11 +159,11 @@ const m = class m {
    */
   constructor(t, a, e) {
     this.players = /* @__PURE__ */ new Map(), this.markers = /* @__PURE__ */ new Map(), this.colors = /* @__PURE__ */ new Map(), this.colorIdx = 0, this.follow = null, this.lastZones = null, this.ml = t, this.opts = e;
-    const n = e.center ?? { x: 0, y: 0 };
+    const o = e.center ?? { x: 0, y: 0 };
     if (this.map = new t.Map({
       container: a,
       style: L(e.tileBaseUrl, e.style ?? "satellite", e.background, e.tileUrl),
-      center: l(n.x, n.y),
+      center: l(o.x, o.y),
       zoom: e.zoom ?? 3,
       minZoom: C,
       maxZoom: e.maxZoom ?? H + 3,
@@ -176,12 +176,12 @@ const m = class m {
       touchZoomRotate: !0,
       renderWorldCopies: !1
     }), e.zoom == null) {
-      const i = l(g.minX, g.minY), r = l(g.maxX, g.maxY);
-      this.map.once("load", () => this.map.fitBounds([i, r], { padding: 12, animate: !1 }));
+      const r = l(g.minX, g.minY), i = l(g.maxX, g.maxY);
+      this.map.once("load", () => this.map.fitBounds([r, i], { padding: 12, animate: !1 }));
     }
-    e.rotate !== !0 && this.map.touchZoomRotate.disableRotation(), e.zoomControl && this.map.addControl(new t.NavigationControl({ showCompass: !1 }), "bottom-right"), e.onMapClick && this.map.on("click", (i) => {
-      const [r, s] = $(i.lngLat.lng, i.lngLat.lat);
-      e.onMapClick(r, s);
+    e.rotate !== !0 && this.map.touchZoomRotate.disableRotation(), e.zoomControl && this.map.addControl(new t.NavigationControl({ showCompass: !1 }), "bottom-right"), e.onMapClick && this.map.on("click", (r) => {
+      const [i, s] = O(r.lngLat.lng, r.lngLat.lat);
+      e.onMapClick(i, s);
     });
   }
   /** Die rohe MapLibre-Karte — für alles, was dieses Paket bewusst nicht kann. */
@@ -212,22 +212,22 @@ const m = class m {
   setPlayers(t) {
     const a = /* @__PURE__ */ new Set();
     for (const e of t) {
-      const n = String(e.id);
-      a.add(n);
-      const i = this.colorFor(n, e.color), r = l(e.x, e.y), s = this.players.get(n);
+      const o = String(e.id);
+      a.add(o);
+      const r = this.colorFor(o, e.color), i = l(e.x, e.y), s = this.players.get(o);
       if (s)
-        s.setLngLat(r), T(s.getElement(), e, i);
+        s.setLngLat(i), T(s.getElement(), e, r);
       else {
-        const h = T(document.createElement("div"), e, i);
+        const h = T(document.createElement("div"), e, r);
         this.opts.onSelect && h.addEventListener("click", (M) => {
           M.stopPropagation(), this.opts.onSelect("player", e.id);
-        }), this.players.set(n, new this.ml.Marker({ element: h }).setLngLat(r).addTo(this.map));
+        }), this.players.set(o, new this.ml.Marker({ element: h }).setLngLat(i).addTo(this.map));
       }
     }
-    for (const [e, n] of this.players)
-      a.has(e) || (n.remove(), this.players.delete(e));
+    for (const [e, o] of this.players)
+      a.has(e) || (o.remove(), this.players.delete(e));
     if (this.follow) {
-      const e = t.find((n) => String(n.id) === this.follow);
+      const e = t.find((o) => String(o.id) === this.follow);
       e && this.map.easeTo({ center: l(e.x, e.y), duration: 400 });
     }
   }
@@ -235,23 +235,23 @@ const m = class m {
     const a = /* @__PURE__ */ new Set();
     for (const e of t) {
       a.add(e.id);
-      const n = l(e.x, e.y), i = this.markers.get(e.id);
-      if (i)
-        i.setLngLat(n), A(i.getElement(), e);
+      const o = l(e.x, e.y), r = this.markers.get(e.id);
+      if (r)
+        r.setLngLat(o), A(r.getElement(), e);
       else {
-        const r = A(document.createElement("div"), e);
-        this.opts.onSelect && r.addEventListener("click", (s) => {
+        const i = A(document.createElement("div"), e);
+        this.opts.onSelect && i.addEventListener("click", (s) => {
           s.stopPropagation(), this.opts.onSelect("marker", e.id);
-        }), this.markers.set(e.id, new this.ml.Marker({ element: r }).setLngLat(n).addTo(this.map));
+        }), this.markers.set(e.id, new this.ml.Marker({ element: i }).setLngLat(o).addTo(this.map));
       }
     }
-    for (const [e, n] of this.markers)
-      a.has(e) || (n.remove(), this.markers.delete(e));
+    for (const [e, o] of this.markers)
+      a.has(e) || (o.remove(), this.markers.delete(e));
   }
   /** Zonen als GeoJSON — hier sind es Flächen, und Flächen kann MapLibre selbst. */
   setZones(t) {
     this.lastZones = t;
-    const a = F(t), e = this.map.getSource("zones");
+    const a = G(t), e = this.map.getSource("zones");
     if (e) {
       e.setData(a);
       return;
@@ -270,9 +270,9 @@ const m = class m {
       type: "line",
       source: "zones",
       paint: { "line-color": ["get", "color"], "line-width": 2, "line-opacity": 0.8 }
-    }), this.opts.onSelect && this.map.on("click", "zones-fill", (n) => {
-      const i = n.features?.[0]?.properties?.id;
-      i != null && this.opts.onSelect("zone", String(i));
+    }), this.opts.onSelect && this.map.on("click", "zones-fill", (o) => {
+      const r = o.features?.[0]?.properties?.id;
+      r != null && this.opts.onSelect("zone", String(r));
     });
   }
   /** Hinfliegen. `zoom` weglassen heißt: Zoomstufe behalten. */
@@ -302,15 +302,15 @@ m.PALETTE = [
   "#06b6d4",
   "#ec4899"
 ];
-let b = m;
-function B({
-  maplibre: o,
+let v = m;
+function U({
+  maplibre: n,
   players: t,
   markers: a,
   zones: e,
-  follow: n,
-  className: i,
-  style: r,
+  follow: o,
+  className: r,
+  style: i,
   mapStyle: s,
   onReady: h,
   ...M
@@ -318,7 +318,7 @@ function B({
   const u = x(null), c = x(null), w = x(!1);
   return d(() => {
     if (!u.current) return;
-    const p = new b(o, u.current, { ...M, style: s });
+    const p = new v(n, u.current, { ...M, style: s });
     c.current = p, p.ready().then(() => {
       w.current = !0, h?.(p);
     });
@@ -333,15 +333,15 @@ function B({
   }, [a]), d(() => {
     e && c.current?.setZones(e);
   }, [e]), d(() => {
-    c.current?.setFollow(n ?? null);
-  }, [n]), d(() => {
+    c.current?.setFollow(o ?? null);
+  }, [o]), d(() => {
     s && c.current?.setStyle(s);
   }, [s]), /* @__PURE__ */ I(
     "div",
     {
       ref: u,
-      className: i,
-      style: { width: "100%", height: "100%", ...r }
+      className: r,
+      style: { width: "100%", height: "100%", ...i }
     }
   );
 }
@@ -350,17 +350,17 @@ export {
   g as GAME_BOUNDS,
   f as GAME_LIMITS,
   S as ICON_SVG,
-  b as LiveMap,
-  B as LiveMapView,
-  N as MARKER_ICONS,
+  v as LiveMap,
+  U as LiveMapView,
+  Y as MARKER_ICONS,
   H as MAX_ZOOM,
   C as MIN_ZOOM,
-  X as TILE_STYLES,
+  N as TILE_STYLES,
   V as clampGame,
   l as gameToLngLat,
-  O as headingToBearing,
+  X as headingToBearing,
   P as iconSvg,
-  $ as lngLatToGame,
+  O as lngLatToGame,
   L as tileStyle
 };
 //# sourceMappingURL=index.js.map

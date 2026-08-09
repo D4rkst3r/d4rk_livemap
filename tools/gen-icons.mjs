@@ -58,11 +58,13 @@ const header = `// Symbole für die Karte — echte Icons, keine Emojis.
 
 const body = `export const ICON_SVG: Record<string, string> = ${JSON.stringify(icons, null, 4)}
 
-/** Ein fertiges <svg>. Die Linienfarbe erbt es vom Elternteil (currentColor). */
-export function iconSvg(name: string, size = 16): string {
+/** Ein fertiges <svg>. Die Linienfarbe erbt es vom Elternteil (currentColor).
+ *  \`weight\` etwas kräftiger als Lucides 2, wenn das Symbol klein und weiß auf
+ *  einer Farbfläche sitzt — dünne Linien verschwinden dort. */
+export function iconSvg(name: string, size = 16, weight = 2): string {
     const inner = ICON_SVG[name] ?? ICON_SVG['map-pin']
     return '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size +
-        '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+        '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + weight + '" ' +
         'stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>'
 }
 `
