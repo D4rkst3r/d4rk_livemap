@@ -30,14 +30,23 @@ export function tileStyle(
     baseUrl: string,
     style: TileStyle = 'satellite',
     background = '#07080f',
+    urlTemplate?: string,
 ): StyleSpecification {
     const base = baseUrl.replace(/\/+$/, '')
+    // Zwei Kachelsaetze existieren nebeneinander: der Web-Host legt sie unter
+    // `/tiles/{stil}/{z}/{x}/{y}.jpg` ab, die FiveM-Resource hat nur einen Satz unter
+    // `/tiles/{z}/{x}/{y}.jpg`. Statt einen von beiden umzubauen — 57 MB Bilder neu
+    // sortieren, damit ein Pfad huebscher aussieht — nimmt das Paket die Vorlage
+    // entgegen. `{style}` wird ersetzt, der Rest bleibt MapLibres Platzhalter.
+    const url = (urlTemplate ?? '{base}/tiles/{style}/{z}/{x}/{y}.jpg')
+        .replace('{base}', base)
+        .replace('{style}', style)
     return {
         version: 8,
         sources: {
             gta: {
                 type: 'raster',
-                tiles: [`${base}/tiles/${style}/{z}/{x}/{y}.jpg`],
+                tiles: [url],
                 tileSize: 256,
                 minzoom: MIN_ZOOM,
                 maxzoom: MAX_ZOOM,

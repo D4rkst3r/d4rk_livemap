@@ -8,12 +8,17 @@ export declare const GAME_LIMITS: {
     readonly minY: -4058;
     readonly maxY: 8429;
 };
-/** Wo das Spiel spielt — die sinnvolle Anfangsansicht, nicht das technische Limit. */
+/** Wo das Spiel spielt — die sinnvolle Anfangsansicht, nicht das technische Limit.
+ *
+ *  NICHT symmetrisch, und das ist kein Tippfehler: Los Santos liegt im Sueden, Paleto
+ *  Bay bei y ≈ 6500 im Norden. Mit ±4096 faellt der halbe Norden aus dem Bild — genau
+ *  das ist beim ersten Sichttest passiert. Dieselben Zahlen benutzt auch die Karten-App
+ *  des Handys in `Config.Maps`. */
 export declare const GAME_BOUNDS: {
-    readonly minX: -4096;
-    readonly maxX: 4096;
-    readonly minY: -4058;
-    readonly maxY: 4096;
+    readonly minX: -4000;
+    readonly maxX: 4500;
+    readonly minY: -4000;
+    readonly maxY: 8000;
 };
 export declare function clampGame(x: number, y: number): [number, number];
 /**

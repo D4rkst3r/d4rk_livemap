@@ -53,6 +53,11 @@ export type LiveMapOptions = {
      *  letzte Stufe hoch — für eine Straßenansicht ist das besser als eine leere Karte. */
     maxZoom?: number;
     background?: string;
+    /** Eigene Kachel-Vorlage, falls der Host anders aufgebaut ist. `{base}` und
+     *  `{style}` werden ersetzt, `{z}/{x}/{y}` bleiben MapLibres Platzhalter.
+     *  Vorgabe: `{base}/tiles/{style}/{z}/{x}/{y}.jpg` — die FiveM-Resource mit nur
+     *  einem Satz nimmt `{base}/tiles/{z}/{x}/{y}.jpg`. */
+    tileUrl?: string;
     /** Bedienelemente. Im Handy will man keine — dort wird gewischt. */
     zoomControl?: boolean;
     attribution?: boolean;

@@ -28,4 +28,4 @@ export declare const MAX_ZOOM = 5;
  * die letzte Stufe hoch, statt 404er zu laden. Ohne die Angabe wäre jede Stufe über 5
  * eine leere Karte, und genau dorthin zoomt man beim Betrachten einer Straße.
  */
-export declare function tileStyle(baseUrl: string, style?: TileStyle, background?: string): StyleSpecification;
+export declare function tileStyle(baseUrl: string, style?: TileStyle, background?: string, urlTemplate?: string): StyleSpecification;

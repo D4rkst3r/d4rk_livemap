@@ -16,6 +16,7 @@
 
 import type { Map as MLMap, Marker as MLMarker, MapOptions } from 'maplibre-gl'
 import { gameToLngLat, lngLatToGame } from './coords'
+import { GAME_BOUNDS, gameToLngLat as g2ll } from './coords'
 import { MAX_ZOOM, MIN_ZOOM, tileStyle, type TileStyle } from './tiles'
 import { markerNode, playerNode, zoneGeoJSON } from './shapes'
 import type { LiveMapOptions, MapMarker, MapZone, PlayerDot } from './types'
@@ -49,7 +50,7 @@ export class LiveMap {
 
         this.map = new ml.Map({
             container,
-            style: tileStyle(opts.tileBaseUrl, opts.style ?? 'satellite', opts.background),
+            style: tileStyle(opts.tileBaseUrl, opts.style ?? 'satellite', opts.background, opts.tileUrl),
             center: gameToLngLat(center.x, center.y),
             zoom: opts.zoom ?? 3,
             minZoom: MIN_ZOOM,
@@ -63,6 +64,16 @@ export class LiveMap {
             touchZoomRotate: true,
             renderWorldCopies: false,
         } as MapOptions)
+
+        // Ohne feste Zoomstufe wird die ganze Karte eingepasst statt auf 3 gesetzt.
+        // Eine feste Stufe sieht auf einem breiten Bildschirm richtig aus und schneidet
+        // im Handy die Haelfte ab — die Zahl haengt an der Fenstergroesse, und die
+        // kennt nur der Browser.
+        if (opts.zoom == null) {
+            const sw = g2ll(GAME_BOUNDS.minX, GAME_BOUNDS.minY)
+            const ne = g2ll(GAME_BOUNDS.maxX, GAME_BOUNDS.maxY)
+            this.map.once('load', () => this.map.fitBounds([sw, ne], { padding: 12, animate: false }))
+        }
 
         if (opts.rotate !== true) this.map.touchZoomRotate.disableRotation()
         if (opts.zoomControl) this.map.addControl(new ml.NavigationControl({ showCompass: false }), 'bottom-right')
@@ -89,7 +100,7 @@ export class LiveMap {
         this.opts.style = style
         // `setStyle` wirft die eigenen Layer weg, HTML-Marker überleben es aber —
         // deshalb muss hier nichts neu aufgebaut werden außer den Zonen.
-        this.map.setStyle(tileStyle(this.opts.tileBaseUrl, style, this.opts.background))
+        this.map.setStyle(tileStyle(this.opts.tileBaseUrl, style, this.opts.background, this.opts.tileUrl))
         this.map.once('styledata', () => { if (this.lastZones) this.setZones(this.lastZones) })
     }
 

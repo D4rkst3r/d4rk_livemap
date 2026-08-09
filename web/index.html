@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>D4rk LiveMap</title>
+  <!-- Der Server ersetzt die beiden Platzhalter beim Ausliefern. So braucht die
+       Seite keinen zusaetzlichen Abruf, nur um zu wissen, wer angemeldet ist. -->
+  <meta name="d4rk-session" content="%SESSION_JSON%" />
+  <meta name="d4rk-mapconfig" content="%MAP_CONFIG%" />
+  <script type="module" crossorigin src="/assets/app.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index.css">
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>

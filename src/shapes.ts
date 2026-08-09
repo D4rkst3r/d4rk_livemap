@@ -5,10 +5,15 @@
 // bringt ihr eigenes CSS mit. Ein Stylesheet aus dem Paket würde dort entweder
 // überschrieben oder es überschriebe fremdes — beides fällt erst im Betrieb auf.
 //
-// Die Knoten werden WIEDERVERWENDET (`el` kommt herein und geht verändert hinaus),
-// nicht jedes Mal neu gebaut. Bei einem halben Sekundentakt ist der Unterschied
-// zwischen "Attribut ändern" und "Knoten ersetzen" der zwischen einer ruhigen und
-// einer flackernden Karte.
+// ⚠ EINE REGEL, die hier alles bestimmt: das Wurzel-Element eines Markers gehört
+// MapLibre, nicht uns. MapLibre schreibt die Position als `transform` genau dorthin.
+// Wer darauf `style.cssText = '…'` setzt, löscht sie — und dann kleben alle Marker in
+// der linken oberen Ecke, bis die nächste Kartenbewegung sie neu setzt. Genau dieses
+// Bild ("erst beim Zoomen richtig") hat es gegeben, bevor die Gestaltung in ein
+// Kind-Element gewandert ist.
+//
+// Deshalb: die Wurzel bekommt nur Größe, einmalig und über Einzel-Eigenschaften. Alles
+// Sichtbare hängt darunter.
 
 import { headingToBearing } from './coords'
 import type { MapMarker, MapZone, PlayerDot } from './types'
@@ -20,17 +25,28 @@ export const MARKER_ICONS: Record<string, string> = {
     police: '👮', tow: '🛻', default: '📍',
 }
 
-export function playerNode(el: HTMLElement, p: PlayerDot, color: string): HTMLElement {
-    el.style.cssText = 'width:32px;height:32px;cursor:pointer;will-change:transform'
+/** Größe der Wurzel setzen, ohne alles andere zu verlieren. */
+function sizeRoot(el: HTMLElement, size: number) {
+    el.style.width = size + 'px'
+    el.style.height = size + 'px'
+    el.style.cursor = 'pointer'
+}
 
-    let dot = el.firstElementChild as HTMLElement | null
-    if (!dot) {
-        dot = document.createElement('div')
-        el.appendChild(dot)
-        const tag = document.createElement('div')
-        el.appendChild(tag)
+/** Kind holen oder anlegen — dort darf frei gestaltet werden. */
+function child(el: HTMLElement, idx: number): HTMLElement {
+    let n = el.children[idx] as HTMLElement | undefined
+    while (!n) {
+        el.appendChild(document.createElement('div'))
+        n = el.children[idx] as HTMLElement | undefined
     }
-    const tag = el.lastElementChild as HTMLElement
+    return n
+}
+
+export function playerNode(el: HTMLElement, p: PlayerDot, color: string): HTMLElement {
+    sizeRoot(el, 32)
+
+    const dot = child(el, 0)
+    const tag = child(el, 1)
 
     dot.style.cssText =
         `width:32px;height:32px;border-radius:50%;background:${color}22;` +
@@ -39,8 +55,8 @@ export function playerNode(el: HTMLElement, p: PlayerDot, color: string): HTMLEl
     const glyph = p.vehicle ? '🚗' : '👤'
     if (dot.textContent !== glyph) dot.textContent = glyph
 
-    // Blickrichtung dreht NUR den Punkt. Drehte man den ganzen Marker, stuende der
-    // Name darunter kopfueber — und ein Name, den man drehen muss, ist keiner.
+    // Blickrichtung dreht NUR den Punkt. Drehte man den Marker selbst, stünde der
+    // Name kopfüber — und ein Name, den man drehen muss, ist keiner.
     dot.style.transform = p.heading != null
         ? `rotate(${headingToBearing(p.heading)}deg)` : ''
 
@@ -57,13 +73,16 @@ export function playerNode(el: HTMLElement, p: PlayerDot, color: string): HTMLEl
 }
 
 export function markerNode(el: HTMLElement, m: MapMarker): HTMLElement {
+    sizeRoot(el, 30)
+
     const color = m.color || '#3b82f6'
     const glyph = MARKER_ICONS[m.icon ?? 'default'] ?? m.icon ?? MARKER_ICONS.default
-    el.style.cssText =
+    const dot = child(el, 0)
+    dot.style.cssText =
         `width:30px;height:30px;border-radius:50%;background:${color}20;` +
         `border:2px solid ${color};display:flex;align-items:center;justify-content:center;` +
-        `font-size:13px;box-shadow:0 0 8px ${color}44;cursor:pointer`
-    if (el.textContent !== glyph) el.textContent = glyph
+        `font-size:13px;box-shadow:0 0 8px ${color}44`
+    if (dot.textContent !== glyph) dot.textContent = glyph
     if (m.label) el.title = m.label
     return el
 }

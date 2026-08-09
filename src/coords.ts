@@ -37,8 +37,13 @@ export const GAME_LIMITS = {
     minY: -4058, maxY: 8429,
 } as const
 
-/** Wo das Spiel spielt — die sinnvolle Anfangsansicht, nicht das technische Limit. */
-export const GAME_BOUNDS = { minX: -4096, maxX: 4096, minY: -4058, maxY: 4096 } as const
+/** Wo das Spiel spielt — die sinnvolle Anfangsansicht, nicht das technische Limit.
+ *
+ *  NICHT symmetrisch, und das ist kein Tippfehler: Los Santos liegt im Sueden, Paleto
+ *  Bay bei y ≈ 6500 im Norden. Mit ±4096 faellt der halbe Norden aus dem Bild — genau
+ *  das ist beim ersten Sichttest passiert. Dieselben Zahlen benutzt auch die Karten-App
+ *  des Handys in `Config.Maps`. */
+export const GAME_BOUNDS = { minX: -4000, maxX: 4500, minY: -4000, maxY: 8000 } as const
 
 const TILE = 256
 const RAD = Math.PI / 180

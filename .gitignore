@@ -3,13 +3,17 @@ node_modules/
 
 # Konfiguration (enthält Secrets!)
 backend/.env
+legacy/backend/.env
+
+# Karten-Kacheln: zu groß für Git. Sie liegen auf dem Server unter web/tiles/
+# und werden aus dem Kachel-Schneider (A:\Webserver\map\tile_cutter.js) erzeugt.
+web/tiles/
+frontend/tiles/
+legacy/**/tiles/
 
 # Logs
 *.log
 logs/
-
-# Tiles (zu groß für Git)
-frontend/tiles/
 
 # OS-Dateien
 .DS_Store
