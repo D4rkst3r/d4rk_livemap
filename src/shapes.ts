@@ -16,13 +16,22 @@
 // Sichtbare hängt darunter.
 
 import { headingToBearing } from './coords'
+import { iconSvg } from './icons'
 import type { MapMarker, MapZone, PlayerDot } from './types'
 
-/** Symbole für `marker.icon`. Ein unbekannter Name fällt auf die Stecknadel zurück. */
+/** Kurznamen für `marker.icon` → Lucide-Symbol.
+ *
+ *  Die linke Spalte sind die Namen, die andere Resourcen schon benutzen
+ *  (`icon = 'box'` steht so in prop_placement). Sie bleiben gültig, auch wenn das
+ *  Symbol dahinter jetzt ein anderes ist — eine Umbenennung, die fremden Code
+ *  stillschweigend auf die Stecknadel zurückfallen lässt, wäre keine Verbesserung. */
 export const MARKER_ICONS: Record<string, string> = {
-    box: '📦', cone: '🚧', barrier: '🚔', tent: '⛺',
-    lamp: '💡', blip: '⭕', fire: '🔥', medic: '🚑',
-    police: '👮', tow: '🛻', default: '📍',
+    box: 'package', cone: 'traffic-cone', barrier: 'shield', tent: 'tent',
+    lamp: 'lamp-ceiling', blip: 'circle-dot', fire: 'flame', medic: 'ambulance',
+    police: 'shield', tow: 'truck', default: 'map-pin',
+    // Die Themen der Warnungen-App im Handy, damit beide dieselben Symbole zeigen.
+    general: 'siren', health: 'heart-pulse', weather: 'cloud-lightning',
+    traffic: 'traffic-cone', missing: 'user-search', alert: 'triangle-alert',
 }
 
 /** Größe der Wurzel setzen, ohne alles andere zu verlieren. */
@@ -51,9 +60,15 @@ export function playerNode(el: HTMLElement, p: PlayerDot, color: string): HTMLEl
     dot.style.cssText =
         `width:32px;height:32px;border-radius:50%;background:${color}22;` +
         `border:2px solid ${color};display:flex;align-items:center;justify-content:center;` +
-        `font-size:13px;box-shadow:0 0 10px ${color}55`
-    const glyph = p.vehicle ? '🚗' : '👤'
-    if (dot.textContent !== glyph) dot.textContent = glyph
+        `box-shadow:0 0 10px ${color}55`
+    // Symbol nur neu setzen, wenn es sich wirklich ändert: `innerHTML` bei jedem Takt
+    // baut sonst zweimal die Sekunde ein SVG neu, für jeden Spieler.
+    const glyph = p.vehicle ? 'car' : 'user'
+    if (dot.dataset.icon !== glyph) {
+        dot.dataset.icon = glyph
+        dot.innerHTML = iconSvg(glyph, 15)
+    }
+    dot.style.color = color
 
     // Blickrichtung dreht NUR den Punkt. Drehte man den Marker selbst, stünde der
     // Name kopfüber — und ein Name, den man drehen muss, ist keiner.
@@ -76,13 +91,18 @@ export function markerNode(el: HTMLElement, m: MapMarker): HTMLElement {
     sizeRoot(el, 30)
 
     const color = m.color || '#3b82f6'
-    const glyph = MARKER_ICONS[m.icon ?? 'default'] ?? m.icon ?? MARKER_ICONS.default
+    // Erst der Kurzname, dann der Lucide-Name direkt — so kann eine Resource auch
+    // `icon = 'wrench'` schreiben, ohne dass hier eine Zeile dazukommt.
+    const glyph = MARKER_ICONS[m.icon ?? 'default'] ?? m.icon ?? 'map-pin'
     const dot = child(el, 0)
     dot.style.cssText =
         `width:30px;height:30px;border-radius:50%;background:${color}20;` +
         `border:2px solid ${color};display:flex;align-items:center;justify-content:center;` +
-        `font-size:13px;box-shadow:0 0 8px ${color}44`
-    if (dot.textContent !== glyph) dot.textContent = glyph
+        `color:${color};box-shadow:0 0 8px ${color}44`
+    if (dot.dataset.icon !== glyph) {
+        dot.dataset.icon = glyph
+        dot.innerHTML = iconSvg(glyph, 15)
+    }
     if (m.label) el.title = m.label
     return el
 }
