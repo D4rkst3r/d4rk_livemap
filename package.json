@@ -1,0 +1,36 @@
+{
+  "name": "@d4rk/livemap",
+  "version": "3.0.0",
+  "description": "GTA-V-Karte fuer FiveM — MapLibre-Kern ohne Transport, nutzbar in NUI, Tablet und Web",
+  "type": "module",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/D4rkst3r/d4rk_livemap.git" },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist", "src", "README.md"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/"
+  },
+  "peerDependencies": {
+    "maplibre-gl": ">=4",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/geojson": "^7946.0.14",
+    "@types/react": "^18.3.3",
+    "maplibre-gl": "^4.7.1",
+    "react": "^18.3.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.0"
+  }
+}

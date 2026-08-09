@@ -1,0 +1,72 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>d4rk_livemap — Sichttest</title>
+<style>
+  html,body{margin:0;height:100%;background:#07080f;color:#dfe3ee;font:13px system-ui}
+  #map{position:absolute;inset:0}
+  #hud{position:absolute;z-index:5;left:10px;top:10px;background:rgba(7,8,15,.86);
+       border:1px solid #ffffff22;border-radius:10px;padding:10px 12px;line-height:1.7}
+  button{background:#1b1d2b;color:#dfe3ee;border:1px solid #ffffff22;border-radius:6px;
+         padding:3px 8px;cursor:pointer;margin-right:4px}
+  code{color:#00d4aa}
+</style>
+<div id="map"></div>
+<div id="hud">
+  <div><b>d4rk_livemap</b> — MapLibre-Kern</div>
+  <div id="styles"></div>
+  <div>Klick auf die Karte: <code id="clicked">–</code></div>
+  <div>Referenzpunkte sind Marker mit bekannten Koordinaten.</div>
+</div>
+<script type="module">
+  import maplibregl from 'maplibre-gl'
+  import 'maplibre-gl/dist/maplibre-gl.css'
+  import { LiveMap, TILE_STYLES } from '../src/index.ts'
+
+  const map = new LiveMap(maplibregl, document.getElementById('map'), {
+      tileBaseUrl: '',   // ueber den Dev-Proxy, siehe vite.demo.config.ts
+      style: 'satellite',
+      zoom: 3,
+      zoomControl: true,
+      onMapClick: (x, y) => {
+          document.getElementById('clicked').textContent = x.toFixed(0) + ', ' + y.toFixed(0)
+      },
+      onSelect: (kind, id) => console.log('gewaehlt', kind, id),
+  })
+  window.map = map
+
+  // Bekannte Orte aus GTA V. Wenn die Umrechnung stimmt, liegen sie dort, wo sie
+  // hingehoeren — der Flughafen im Sueden, Paleto Bay ganz im Norden.
+  await map.ready()
+  map.setMarkers([
+      { id: 'legion',   x: 215,    y: -810,   label: 'Legion Square',   icon: 'blip',    color: '#00d4aa' },
+      { id: 'lsia',     x: -1037,  y: -2738,  label: 'LSIA Flughafen',  icon: 'default', color: '#60a5fa' },
+      { id: 'paleto',   x: -100,   y: 6460,   label: 'Paleto Bay',      icon: 'default', color: '#f59e0b' },
+      { id: 'sandy',    x: 1961,   y: 3740,   label: 'Sandy Shores',    icon: 'cone',    color: '#f43f5e' },
+      { id: 'chiliad',  x: 501,    y: 5604,   label: 'Mount Chiliad',   icon: 'lamp',    color: '#a78bfa' },
+  ])
+  map.setZones([
+      { id: 'z1', x: 215, y: -810, radius: 400, label: 'Innenstadt', color: '#00d4aa' },
+      { id: 'z2', type: 'polygon', x: 0, y: 0, label: 'Testflaeche', color: '#ec4899',
+        points: [{x:-500,y:-500},{x:500,y:-500},{x:500,y:500},{x:-500,y:500}] },
+  ])
+
+  // Ein paar bewegte Punkte, damit man sieht, dass sie wandern statt zu blinken.
+  let t = 0
+  setInterval(() => {
+      t += 0.05
+      map.setPlayers([
+          { id: 1, name: 'Streife 12', x: 215 + Math.cos(t)*600, y: -810 + Math.sin(t)*600,
+            heading: (t*57.3)%360, vehicle: 'police' },
+          { id: 2, name: 'Rettung 3',  x: 1961 + Math.cos(t*0.7)*400, y: 3740 + Math.sin(t*0.7)*400 },
+          { id: 3, name: 'Zu Fuss',    x: -1037, y: -2738 },
+      ])
+  }, 500)
+
+  const box = document.getElementById('styles')
+  for (const [id, s] of Object.entries(TILE_STYLES)) {
+      const b = document.createElement('button')
+      b.textContent = s.label
+      b.onclick = () => map.setStyle(id)
+      box.appendChild(b)
+  }
+</script>

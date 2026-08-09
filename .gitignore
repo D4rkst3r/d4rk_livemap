@@ -25,3 +25,7 @@ Thumbs.db
 # Temporäre Dateien
 tmp/
 temp/
+
+# dist/ wird BEWUSST mitverwaltet: `npm i github:D4rkst3r/d4rk_livemap` soll nichts
+# bauen muessen. Ein Build-Schritt beim Installieren braucht die Dev-Abhaengigkeiten
+# und faellt genau dort um, wo niemand hinschaut — auf dem Spielserver.
