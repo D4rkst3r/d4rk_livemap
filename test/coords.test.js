@@ -39,3 +39,29 @@ test('Blickrichtung dreht sich richtig herum', () => {
     assert.equal(headingToBearing(270), 90)
     assert.equal(headingToBearing(360), 0)
 })
+
+test('Weltpixel und lng/lat beschreiben denselben Punkt', async () => {
+    const { gameToPixel, gameToLngLat, TILE_SIZE } = await import('../dist/index.js')
+
+    // Der Nullpunkt bei Zoom 0 sind genau die Zahlen aus der Leaflet-Transformation,
+    // aus der alles stammt.
+    const [px0, py0] = gameToPixel(0, 0, 0)
+    near(px0, 117.3, 1e-9); near(py0, 172.8, 1e-9)
+
+    // Die eigentliche Zusicherung: das Standbild und die bedienbare Karte muessen
+    // dieselbe Kachel treffen. Beide Wege werden deshalb gegeneinander gerechnet —
+    // eine feste Kachelnummer waere geraten, das hier ist geprueft.
+    const toMercatorPixel = (lng, lat, z) => {
+        const s = TILE_SIZE * Math.pow(2, z)
+        const x = ((lng + 180) / 360) * s
+        const y = (s / 2) * (1 - Math.asinh(Math.tan(lat * Math.PI / 180)) / Math.PI)
+        return [x, y]
+    }
+    for (const z of [0, 2, 4, 5]) {
+        for (const [gx, gy] of [[0, 0], [215, -810], [-1037, -2738], [-100, 6460]]) {
+            const [ax, ay] = gameToPixel(gx, gy, z)
+            const [bx, by] = toMercatorPixel(...gameToLngLat(gx, gy), z)
+            near(ax, bx, 1e-6); near(ay, by, 1e-6)
+        }
+    }
+})

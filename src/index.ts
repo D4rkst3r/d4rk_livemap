@@ -2,7 +2,7 @@ export { LiveMap } from './LiveMap'
 export { LiveMapView } from './react'
 export {
     DEFAULT_TRANSFORM, GAME_BOUNDS, GAME_LIMITS,
-    clampGame, gameToLngLat, headingToBearing, lngLatToGame,
+    clampGame, gameToLngLat, gameToPixel, headingToBearing, lngLatToGame, TILE_SIZE,
     type Transform,
 } from './coords'
 export { MARKER_ICONS } from './shapes'

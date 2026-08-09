@@ -1,23 +1,28 @@
-import { jsx as I } from "react/jsx-runtime";
+import { jsx as z } from "react/jsx-runtime";
 import { useRef as x, useEffect as d } from "react";
-const E = [0.02072, 117.3, -0.0205, 172.8], f = {
+const w = [0.02072, 117.3, -0.0205, 172.8], f = {
   minX: -5661,
   maxX: 6694,
   minY: -4058,
   maxY: 8429
-}, g = { minX: -4e3, maxX: 4500, minY: -4e3, maxY: 8e3 }, y = 256, z = Math.PI / 180, R = 180 / Math.PI;
-function V(n, t) {
+}, g = { minX: -4e3, maxX: 4500, minY: -4e3, maxY: 8e3 }, y = 256, R = Math.PI / 180, V = 180 / Math.PI;
+function C(n, t) {
   return [
     Math.min(f.maxX, Math.max(f.minX, n)),
     Math.min(f.maxY, Math.max(f.minY, t))
   ];
 }
-function l(n, t, a = E) {
-  const [e, o] = V(n, t), r = a[0] * e + a[1], i = a[2] * o + a[3], s = r / y * 360 - 180, h = Math.atan(Math.sinh(Math.PI * (1 - 2 * i / y))) * R;
+const U = 256;
+function _(n, t, a, e = w) {
+  const [o, r] = C(n, t), i = Math.pow(2, a);
+  return [(e[0] * o + e[1]) * i, (e[2] * r + e[3]) * i];
+}
+function c(n, t, a = w) {
+  const [e, o] = C(n, t), r = a[0] * e + a[1], i = a[2] * o + a[3], s = r / y * 360 - 180, h = Math.atan(Math.sinh(Math.PI * (1 - 2 * i / y))) * V;
   return [s, h];
 }
-function O(n, t, a = E) {
-  const e = (n + 180) / 360 * y, o = y / 2 * (1 - Math.asinh(Math.tan(t * z)) / Math.PI);
+function O(n, t, a = w) {
+  const e = (n + 180) / 360 * y, o = y / 2 * (1 - Math.asinh(Math.tan(t * R)) / Math.PI);
   return [(e - a[1]) / a[0], (o - a[3]) / a[2]];
 }
 function X(n) {
@@ -28,8 +33,8 @@ const N = {
   road: { label: "Straßen", dark: !0 },
   roads2: { label: "Straßen 2", dark: !0 },
   minimap: { label: "Minimap", dark: !0 }
-}, C = 0, H = 5;
-function L(n, t = "satellite", a = "#07080f", e) {
+}, P = 0, Z = 5;
+function S(n, t = "satellite", a = "#07080f", e) {
   const o = n.replace(/\/+$/, "");
   return {
     version: 8,
@@ -38,8 +43,8 @@ function L(n, t = "satellite", a = "#07080f", e) {
         type: "raster",
         tiles: [(e ?? "{base}/tiles/{style}/{z}/{x}/{y}.jpg").replace("{base}", o).replace("{style}", t)],
         tileSize: 256,
-        minzoom: C,
-        maxzoom: H,
+        minzoom: P,
+        maxzoom: Z,
         attribution: `GTA5 ${N[t].label}`
       }
     },
@@ -54,7 +59,7 @@ function L(n, t = "satellite", a = "#07080f", e) {
     // weglassen — und Schrift braucht eine reine Rasterkarte nicht.
   };
 }
-const S = {
+const T = {
   package: '<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/>',
   "traffic-cone": '<path d="M16.05 10.966a5 2.5 0 0 1-8.1 0"/><path d="m16.923 14.049 4.48 2.04a1 1 0 0 1 .001 1.831l-8.574 3.9a2 2 0 0 1-1.66 0l-8.574-3.91a1 1 0 0 1 0-1.83l4.484-2.04"/><path d="M16.949 14.14a5 2.5 0 1 1-9.9 0L10.063 3.5a2 2 0 0 1 3.874 0z"/><path d="M9.194 6.57a5 2.5 0 0 0 5.61 0"/>',
   shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
@@ -76,8 +81,8 @@ const S = {
   "building-2": '<path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/>',
   pin: '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>'
 };
-function P(n, t = 16, a = 2) {
-  const e = S[n] ?? S["map-pin"];
+function H(n, t = 16, a = 2) {
+  const e = T[n] ?? T["map-pin"];
   return '<svg xmlns="http://www.w3.org/2000/svg" width="' + t + '" height="' + t + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + a + '" stroke-linecap="round" stroke-linejoin="round">' + e + "</svg>";
 }
 const Y = {
@@ -100,7 +105,7 @@ const Y = {
   missing: "user-search",
   alert: "triangle-alert"
 };
-function Z(n, t) {
+function I(n, t) {
   n.style.width = t + "px", n.style.height = t + "px", n.style.cursor = "pointer";
 }
 function b(n, t) {
@@ -109,23 +114,23 @@ function b(n, t) {
     n.appendChild(document.createElement("div")), a = n.children[t];
   return a;
 }
-function T(n, t, a) {
-  Z(n, 32);
+function E(n, t, a) {
+  I(n, 32);
   const e = b(n, 0), o = b(n, 1);
   e.style.cssText = `width:28px;height:28px;margin:2px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:${a};box-shadow:0 0 0 1.5px rgba(255,255,255,.55), 0 0 0 3.5px rgba(7,8,15,.65), 0 2px 6px rgba(0,0,0,.5)`;
   const r = t.vehicle ? "car" : "user";
-  return e.dataset.icon !== r && (e.dataset.icon = r, e.innerHTML = P(r, 14, 2.3)), e.style.transform = t.heading != null ? `rotate(${X(t.heading)}deg)` : "", o.style.cssText = `position:absolute;top:33px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(7,8,15,.92);border-radius:4px;padding:1px 5px;border-bottom:2px solid ${a};font-size:9.5px;font-weight:700;color:#fff;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,.6);pointer-events:none`, o.textContent !== t.name && (o.textContent = t.name), o.style.display = t.name ? "" : "none", n;
+  return e.dataset.icon !== r && (e.dataset.icon = r, e.innerHTML = H(r, 14, 2.3)), e.style.transform = t.heading != null ? `rotate(${X(t.heading)}deg)` : "", o.style.cssText = `position:absolute;top:33px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(7,8,15,.92);border-radius:4px;padding:1px 5px;border-bottom:2px solid ${a};font-size:9.5px;font-weight:700;color:#fff;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,.6);pointer-events:none`, o.textContent !== t.name && (o.textContent = t.name), o.style.display = t.name ? "" : "none", n;
 }
 function A(n, t) {
-  Z(n, 30);
+  I(n, 30);
   const a = t.color || "#3b82f6", e = Y[t.icon ?? "default"] ?? t.icon ?? "map-pin", o = b(n, 0);
-  return o.style.cssText = `width:26px;height:26px;margin:2px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:${a};box-shadow:0 0 0 1.5px rgba(255,255,255,.5), 0 0 0 3px rgba(7,8,15,.6), 0 2px 5px rgba(0,0,0,.45)`, o.dataset.icon !== e && (o.dataset.icon = e, o.innerHTML = P(e, 14, 2.3)), t.label && (n.title = t.label), n;
+  return o.style.cssText = `width:26px;height:26px;margin:2px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:${a};box-shadow:0 0 0 1.5px rgba(255,255,255,.5), 0 0 0 3px rgba(7,8,15,.6), 0 2px 5px rgba(0,0,0,.45)`, o.dataset.icon !== e && (o.dataset.icon = e, o.innerHTML = H(e, 14, 2.3)), t.label && (n.title = t.label), n;
 }
 function F(n, t, a, e = 48) {
   const o = [];
   for (let r = 0; r <= e; r++) {
     const i = r / e * Math.PI * 2;
-    o.push(l(n + Math.cos(i) * a, t + Math.sin(i) * a));
+    o.push(c(n + Math.cos(i) * a, t + Math.sin(i) * a));
   }
   return o;
 }
@@ -137,8 +142,8 @@ function G(n) {
       return {
         type: "Feature",
         geometry: { type: "Polygon", coordinates: [t.type === "polygon" && t.points && t.points.length > 2 ? [
-          ...t.points.map((o) => l(o.x, o.y)),
-          l(t.points[0].x, t.points[0].y)
+          ...t.points.map((o) => c(o.x, o.y)),
+          c(t.points[0].x, t.points[0].y)
         ] : F(t.x, t.y, t.radius ?? 50)] },
         properties: {
           id: t.id,
@@ -162,11 +167,11 @@ const m = class m {
     const o = e.center ?? { x: 0, y: 0 };
     if (this.map = new t.Map({
       container: a,
-      style: L(e.tileBaseUrl, e.style ?? "satellite", e.background, e.tileUrl),
-      center: l(o.x, o.y),
+      style: S(e.tileBaseUrl, e.style ?? "satellite", e.background, e.tileUrl),
+      center: c(o.x, o.y),
       zoom: e.zoom ?? 3,
-      minZoom: C,
-      maxZoom: e.maxZoom ?? H + 3,
+      minZoom: P,
+      maxZoom: e.maxZoom ?? Z + 3,
       attributionControl: e.attribution === !0 ? void 0 : !1,
       // Ein Spielplan hat kein Oben-Links-Nordpfeil-Bedürfnis, und eine gedrehte
       // Karte macht "die Straße geht nach oben" kaputt. Drehen bleibt aus, bis es
@@ -176,7 +181,7 @@ const m = class m {
       touchZoomRotate: !0,
       renderWorldCopies: !1
     }), e.zoom == null) {
-      const r = l(g.minX, g.minY), i = l(g.maxX, g.maxY);
+      const r = c(g.minX, g.minY), i = c(g.maxX, g.maxY);
       this.map.once("load", () => this.map.fitBounds([r, i], { padding: 12, animate: !1 }));
     }
     e.rotate !== !0 && this.map.touchZoomRotate.disableRotation(), e.zoomControl && this.map.addControl(new t.NavigationControl({ showCompass: !1 }), "bottom-right"), e.onMapClick && this.map.on("click", (r) => {
@@ -193,7 +198,7 @@ const m = class m {
     return this.map.loaded() ? Promise.resolve() : new Promise((t) => this.map.once("load", () => t()));
   }
   setStyle(t) {
-    this.opts.style = t, this.map.setStyle(L(this.opts.tileBaseUrl, t, this.opts.background, this.opts.tileUrl)), this.map.once("styledata", () => {
+    this.opts.style = t, this.map.setStyle(S(this.opts.tileBaseUrl, t, this.opts.background, this.opts.tileUrl)), this.map.once("styledata", () => {
       this.lastZones && this.setZones(this.lastZones);
     });
   }
@@ -214,11 +219,11 @@ const m = class m {
     for (const e of t) {
       const o = String(e.id);
       a.add(o);
-      const r = this.colorFor(o, e.color), i = l(e.x, e.y), s = this.players.get(o);
+      const r = this.colorFor(o, e.color), i = c(e.x, e.y), s = this.players.get(o);
       if (s)
-        s.setLngLat(i), T(s.getElement(), e, r);
+        s.setLngLat(i), E(s.getElement(), e, r);
       else {
-        const h = T(document.createElement("div"), e, r);
+        const h = E(document.createElement("div"), e, r);
         this.opts.onSelect && h.addEventListener("click", (M) => {
           M.stopPropagation(), this.opts.onSelect("player", e.id);
         }), this.players.set(o, new this.ml.Marker({ element: h }).setLngLat(i).addTo(this.map));
@@ -228,14 +233,14 @@ const m = class m {
       a.has(e) || (o.remove(), this.players.delete(e));
     if (this.follow) {
       const e = t.find((o) => String(o.id) === this.follow);
-      e && this.map.easeTo({ center: l(e.x, e.y), duration: 400 });
+      e && this.map.easeTo({ center: c(e.x, e.y), duration: 400 });
     }
   }
   setMarkers(t) {
     const a = /* @__PURE__ */ new Set();
     for (const e of t) {
       a.add(e.id);
-      const o = l(e.x, e.y), r = this.markers.get(e.id);
+      const o = c(e.x, e.y), r = this.markers.get(e.id);
       if (r)
         r.setLngLat(o), A(r.getElement(), e);
       else {
@@ -277,7 +282,7 @@ const m = class m {
   }
   /** Hinfliegen. `zoom` weglassen heißt: Zoomstufe behalten. */
   flyTo(t, a, e) {
-    this.map.flyTo({ center: l(t, a), zoom: e ?? this.map.getZoom(), duration: 700 });
+    this.map.flyTo({ center: c(t, a), zoom: e ?? this.map.getZoom(), duration: 700 });
   }
   /** Einem Spieler folgen, `null` beendet es. */
   setFollow(t) {
@@ -303,7 +308,7 @@ m.PALETTE = [
   "#ec4899"
 ];
 let v = m;
-function U({
+function $({
   maplibre: n,
   players: t,
   markers: a,
@@ -315,28 +320,28 @@ function U({
   onReady: h,
   ...M
 }) {
-  const u = x(null), c = x(null), w = x(!1);
+  const u = x(null), l = x(null), k = x(!1);
   return d(() => {
     if (!u.current) return;
     const p = new v(n, u.current, { ...M, style: s });
-    c.current = p, p.ready().then(() => {
-      w.current = !0, h?.(p);
+    l.current = p, p.ready().then(() => {
+      k.current = !0, h?.(p);
     });
-    const k = new ResizeObserver(() => p.resize());
-    return k.observe(u.current), () => {
-      k.disconnect(), p.destroy(), c.current = null, w.current = !1;
+    const L = new ResizeObserver(() => p.resize());
+    return L.observe(u.current), () => {
+      L.disconnect(), p.destroy(), l.current = null, k.current = !1;
     };
   }, []), d(() => {
-    t && c.current?.setPlayers(t);
+    t && l.current?.setPlayers(t);
   }, [t]), d(() => {
-    a && c.current?.setMarkers(a);
+    a && l.current?.setMarkers(a);
   }, [a]), d(() => {
-    e && c.current?.setZones(e);
+    e && l.current?.setZones(e);
   }, [e]), d(() => {
-    c.current?.setFollow(o ?? null);
+    l.current?.setFollow(o ?? null);
   }, [o]), d(() => {
-    s && c.current?.setStyle(s);
-  }, [s]), /* @__PURE__ */ I(
+    s && l.current?.setStyle(s);
+  }, [s]), /* @__PURE__ */ z(
     "div",
     {
       ref: u,
@@ -346,21 +351,23 @@ function U({
   );
 }
 export {
-  E as DEFAULT_TRANSFORM,
+  w as DEFAULT_TRANSFORM,
   g as GAME_BOUNDS,
   f as GAME_LIMITS,
-  S as ICON_SVG,
+  T as ICON_SVG,
   v as LiveMap,
-  U as LiveMapView,
+  $ as LiveMapView,
   Y as MARKER_ICONS,
-  H as MAX_ZOOM,
-  C as MIN_ZOOM,
+  Z as MAX_ZOOM,
+  P as MIN_ZOOM,
+  U as TILE_SIZE,
   N as TILE_STYLES,
-  V as clampGame,
-  l as gameToLngLat,
+  C as clampGame,
+  c as gameToLngLat,
+  _ as gameToPixel,
   X as headingToBearing,
-  P as iconSvg,
+  H as iconSvg,
   O as lngLatToGame,
-  L as tileStyle
+  S as tileStyle
 };
 //# sourceMappingURL=index.js.map

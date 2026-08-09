@@ -21,6 +21,20 @@ export declare const GAME_BOUNDS: {
     readonly maxY: 8000;
 };
 export declare function clampGame(x: number, y: number): [number, number];
+/** Kantenlänge einer Kachel in Pixeln. Der ganze Kachelsatz ist darauf geschnitten. */
+export declare const TILE_SIZE = 256;
+/**
+ * Spielkoordinate → Weltpixel auf einer Zoomstufe.
+ *
+ * Der direkte Weg zu einer Kachel: `Math.floor(px / TILE_SIZE)` ist die Kachelnummer,
+ * der Rest ist die Stelle darin. Das braucht, wer ein STANDBILD zeigen will statt
+ * einer bedienbaren Karte — eine Vorschau in einer Chat-Blase zum Beispiel.
+ *
+ * Warum das eine eigene Funktion wert ist: ein `<img>` mit einer Kachel braucht kein
+ * CORS und keine 800 KB MapLibre. Für eine Blase, die man antippt statt zu bedienen,
+ * ist beides Verschwendung.
+ */
+export declare function gameToPixel(x: number, y: number, zoom: number, t?: Transform): [number, number];
 /**
  * Spielkoordinate → `[lng, lat]`, so wie MapLibre es erwartet.
  *
